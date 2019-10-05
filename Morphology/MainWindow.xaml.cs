@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Morphology
 {
@@ -11,8 +14,6 @@ namespace Morphology
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly Morphs morphs = new Morphs();
-        private readonly Regions regions = new Regions();
         ListBox dragSource = null;
         public MainWindow()
         {
@@ -20,11 +21,9 @@ namespace Morphology
         }
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string region = (sender as ListBox).SelectedItem.ToString();
+            Region region = (sender as ListBox).SelectedItem as Region;
 
-            DataContext = from morph in morphs
-                          where morph.Region == region
-                          select morph;
+            DataContext = region.morphs;
         }
         private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -32,20 +31,36 @@ namespace Morphology
             dragSource = source;
             DragDrop.DoDragDrop(source, source.SelectedItems, DragDropEffects.Move);
         }
+        private void ListBoxItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ListBoxItem dragged = (ListBoxItem)sender;
+
+            // ensure that dragged items are selected, so the target list box 
+            // knows which items are being transferred
+            dragged.IsSelected = true;
+        }
         private void Region_DragEnter(object sender, DragEventArgs args)
         {
-            Console.Write("Region enter");
-
+            Console.WriteLine("Region enter");
         }
         private void Region_DragLeave(object sender, DragEventArgs args)
         {
-            Console.Write("Region leave");
-
+            Console.WriteLine("Region leave");
         }
         private void Region_Drop(object sender, DragEventArgs args)
         {
-            Console.Write("Region received drop");
+            // Drag event is captured by the whole list item (Grid element)
+            Grid parent = (Grid)sender;
+            // Find the Region instance from the DataContext of a bound element
+            TextBlock textblock = (TextBlock)parent.Children[1];
+            // convert DataContext to Type Region, so we can call methods on it
+            Region region = (Region)textblock.DataContext;
 
+            Console.WriteLine("Region received drop " + region);
+
+            // transfer the selected Morphs from whatever region their located in 
+            // to the region they were dropped on
+            region.TransferMorphs(dragSource.SelectedItems);
         }        
     }
 }

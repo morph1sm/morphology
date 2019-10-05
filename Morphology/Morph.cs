@@ -9,17 +9,17 @@ namespace Morphology
     {
         private string _id;
         private string _name;
-        private string _region;
+        private Region _region;
 
         public Morph()
         {
         }
 
-        public Morph(string id, string region, string name)
+        public Morph(string id, string name, Region region)
         {
             _id = id;
-            _region = region;
             _name = name;
+            _region = region;
         }
 
         public string ID
@@ -32,7 +32,7 @@ namespace Morphology
             }
         }
 
-        public string Region
+        public Region Region
         {
             get { return _region; }
             set
@@ -60,6 +60,12 @@ namespace Morphology
         {
             var handler = PropertyChanged;
             handler?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
+        public void MoveToRegion(Region destination)
+        {
+            _region.morphs.Remove(this);
+            destination.morphs.Add(this);
+            _region = destination;
         }
     }
 }

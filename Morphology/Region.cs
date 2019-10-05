@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-
+using System.Collections;
 
 namespace Morphology
 {
@@ -44,13 +44,21 @@ namespace Morphology
                 OnPropertyChanged("Name");
             }
         }
+        public event PropertyChangedEventHandler PropertyChanged;
+        public override string ToString() => _name;
+        protected void OnPropertyChanged(string info)
+        {
+            var handler = PropertyChanged;
+            handler?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
         public string Info
         {
             get
             {
                 long count = morphs.Count;
 
-                if (count == 0) {
+                if (count == 0)
+                {
                     return "empty";
                 }
 
@@ -62,12 +70,13 @@ namespace Morphology
                 return count + " morphs";
             }
         }
-        public event PropertyChangedEventHandler PropertyChanged;
-        public override string ToString() => _name;
-        protected void OnPropertyChanged(string info)
+        internal void TransferMorphs(IList selectedItems)
         {
-            var handler = PropertyChanged;
-            handler?.Invoke(this, new PropertyChangedEventArgs(info));
+            List<Morph> dragged = selectedItems.Cast<Morph>().ToList();
+            foreach (Morph morph in dragged)
+            {
+                morph.MoveToRegion(this);
+            }
         }
     }
 }

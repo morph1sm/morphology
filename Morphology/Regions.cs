@@ -59,15 +59,14 @@ namespace Morphology
             Add(new Region("__Alter3go__"));
 
             Region bbw = new Region("Big Girl Morphs");
-            bbw.morphs.Add(new Morph("PHMBGMChin01", "Big Girl Morphs", "Chin 01"));
-            bbw.morphs.Add(new Morph("PHMBGMChin02", "Big Girl Morphs", "Chin 02"));
+            bbw.morphs.Add(new Morph("PHMBGMChin01", "Chin 01", bbw));
+            bbw.morphs.Add(new Morph("PHMBGMChin02", "Chin 02", bbw));
             Add(bbw);
 
             Region af = new Region("Asian Faces");
-            bbw.morphs.Add(new Morph("AFNose01", "Asian Faces", "Nose 01"));
-            bbw.morphs.Add(new Morph("AFNose02", "Asian Faces", "Nose 02"));
+            af.morphs.Add(new Morph("AFNose01", "Nose 01", af));
+            af.morphs.Add(new Morph("AFNose02", "Nose 02", af));
             Add(af);
-
         }
     }
 }

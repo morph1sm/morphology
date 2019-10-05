@@ -4,12 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Morphology"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         Title="MainWindow" Height="1000" Width="800">
 
     <Window.Resources>
         <local:Regions x:Key="regions" />
         <local:Morphs x:Key="morphs"/>
+        <CollectionViewSource x:Key="sortedRegions" Source="{StaticResource regions}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
     </Window.Resources>
 
     <Grid>
@@ -22,19 +28,20 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <Grid Margin="10, 10, 0, 0">
-            <TextBlock Text="Regions"/>
+        <Grid>
+            <Label Margin="10, 0" Content="Installed Regions"/>
         </Grid>
 
-        <Grid Grid.Column="1" Margin="10, 10, 0, 0">
-            <TextBlock Text="Morphs" />
+        <Grid Grid.Column="1">
+            <Label Margin="10, 0" Content="{Binding ElementName=regionsListBox, Path=SelectedItem.Name}"/>
         </Grid>
         
         <Grid Grid.Row="1">
             <ListBox 
                 Name="regionsListBox"
                 ScrollViewer.VerticalScrollBarVisibility="Visible"
-                ItemsSource="{Binding Source={StaticResource regions}}"
+                ItemsSource="{Binding Source={StaticResource sortedRegions}}"
+                IsSynchronizedWithCurrentItem="True"
                 SelectionChanged="ListBox_SelectionChanged"
                 Margin="10">
                 
@@ -69,7 +76,7 @@
                                 Width="10" 
                                 Height="50" 
                                 HorizontalAlignment="Left" />
-                            <TextBlock Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
+                            <TextBlock Name="Region" Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Info}"/>
                         </Grid>
                     </DataTemplate>
@@ -81,8 +88,11 @@
             <ListBox 
                 Margin="10" 
                 Name="MorphList"
+                SelectionMode="Extended"
+                IsSynchronizedWithCurrentItem="True"
                 PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
                 ItemsSource="{Binding}">
+                
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="0"/>
