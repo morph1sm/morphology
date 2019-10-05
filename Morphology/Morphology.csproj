@@ -63,6 +63,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Regions.cs" />
+    <Compile Include="Region.cs" />
     <Compile Include="DistinctConverter.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -70,7 +72,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InstalledMorphs.cs" />
+    <Compile Include="Morphs.cs" />
     <Compile Include="Morph.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

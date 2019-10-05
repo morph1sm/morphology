@@ -5,27 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Morphology"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525"
-        SizeToContent="WidthAndHeight">
+        Title="MainWindow" Height="1000" Width="800">
 
     <Window.Resources>
-        <local:DistinctConverter x:Key="distinctRegionConverter" />
-        <local:InstalledMorphs x:Key="InstalledMorphs"/>
-        <DataTemplate x:Key="MorphTemplate">
-            <Border Name="border" BorderBrush="Aqua" BorderThickness="1"
-              Padding="5" Margin="5">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    
-                    <TextBlock Grid.Column="0" Text="{Binding Path=DisplayName}"/>
-                    <TextBlock Grid.Column="1" Text="{Binding Path=ID}" />
-
-                </Grid>
-            </Border>
-        </DataTemplate>
+        <local:Regions x:Key="regions" />
+        <local:Morphs x:Key="morphs"/>
     </Window.Resources>
 
     <Grid>
@@ -33,47 +17,93 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="26"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
 
-        <StackPanel Grid.Column="0">
-            <TextBlock FontFamily="Verdana" FontSize="11"
-               Margin="5,15,0,10" FontWeight="Bold">Regions:</TextBlock>
+        <Grid Margin="10, 10, 0, 0">
+            <TextBlock Text="Regions"/>
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="10, 10, 0, 0">
+            <TextBlock Text="Morphs" />
+        </Grid>
+        
+        <Grid Grid.Row="1">
             <ListBox 
                 Name="regionsListBox"
-                ItemsSource="{Binding Source={StaticResource InstalledMorphs}, Converter={StaticResource distinctRegionConverter}}"
-                
-                Width="200" 
-                AllowDrop="True" 
-                Drop="ListBox_Drop"
+                ScrollViewer.VerticalScrollBarVisibility="Visible"
+                ItemsSource="{Binding Source={StaticResource regions}}"
                 SelectionChanged="ListBox_SelectionChanged"
-                SelectedIndex="0"
+                Margin="10">
                 
-                
-                DragEnter="EhDragEnter"
-                DragLeave="EhDragLeave"
-                DragOver="EhDragOver"
-                
-                PreviewDragEnter="EhPreviewDragEnter"
-                PreviewDragLeave="EhPreviewDragLeave"
-                PreviewDragOver="EhPreviewDragOver"
-                PreviewDrop="EhPreviewDrop" 
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="6"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
 
-                
-            />
-        </StackPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid 
+                            Background="WhiteSmoke"
+                            AllowDrop="True" 
+                            Drop="Region_Drop"
+                            DragEnter="Region_DragEnter"
+                            DragLeave="Region_DragLeave">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="10"/>
+                            </Grid.RowDefinitions>
+                            <Grid 
+                                Grid.RowSpan="2" 
+                                Margin="0,0,10,0" 
+                                Background="LightGray" 
+                                Width="10" 
+                                Height="50" 
+                                HorizontalAlignment="Left" />
+                            <TextBlock Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Info}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
 
-        <StackPanel Grid.Column="1">
-            <TextBlock FontFamily="Verdana" FontSize="11"
-               Margin="5,15,0,5" FontWeight="Bold">Morphs:</TextBlock>
+        <Grid Grid.Row="1" Grid.Column="1">
             <ListBox 
-                Width="400" 
                 Margin="10" 
                 Name="MorphList"
                 PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
-                HorizontalContentAlignment="Stretch"
-                ItemsSource="{Binding}"
-                ItemTemplate="{StaticResource MorphTemplate}"
-            />
-        </StackPanel>
+                ItemsSource="{Binding}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="6"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
 
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="WhiteSmoke" Height="50">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="20" />
+                            </Grid.RowDefinitions>
+                            <TextBlock FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
+                            <TextBlock Grid.Row="1" Margin="10, 0" Text="{Binding ID}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </Window>
