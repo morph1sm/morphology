@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morphology", "Morphology.csproj", "{B88AE43B-535A-443E-B0DF-BD0092A462BF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B88AE43B-535A-443E-B0DF-BD0092A462BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B88AE43B-535A-443E-B0DF-BD0092A462BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B88AE43B-535A-443E-B0DF-BD0092A462BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B88AE43B-535A-443E-B0DF-BD0092A462BF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E62A5C61-7724-4074-9F3A-D8A830AFE687}
+	EndGlobalSection
+EndGlobal

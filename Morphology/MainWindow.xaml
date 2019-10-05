@@ -1,0 +1,79 @@
+﻿<Window x:Class="Morphology.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Morphology"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525"
+        SizeToContent="WidthAndHeight">
+
+    <Window.Resources>
+        <local:DistinctConverter x:Key="distinctRegionConverter" />
+        <local:InstalledMorphs x:Key="InstalledMorphs"/>
+        <DataTemplate x:Key="MorphTemplate">
+            <Border Name="border" BorderBrush="Aqua" BorderThickness="1"
+              Padding="5" Margin="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Column="0" Text="{Binding Path=DisplayName}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Path=ID}" />
+
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0">
+            <TextBlock FontFamily="Verdana" FontSize="11"
+               Margin="5,15,0,10" FontWeight="Bold">Regions:</TextBlock>
+            <ListBox 
+                Name="regionsListBox"
+                ItemsSource="{Binding Source={StaticResource InstalledMorphs}, Converter={StaticResource distinctRegionConverter}}"
+                
+                Width="200" 
+                AllowDrop="True" 
+                Drop="ListBox_Drop"
+                SelectionChanged="ListBox_SelectionChanged"
+                SelectedIndex="0"
+                
+                
+                DragEnter="EhDragEnter"
+                DragLeave="EhDragLeave"
+                DragOver="EhDragOver"
+                
+                PreviewDragEnter="EhPreviewDragEnter"
+                PreviewDragLeave="EhPreviewDragLeave"
+                PreviewDragOver="EhPreviewDragOver"
+                PreviewDrop="EhPreviewDrop" 
+
+                
+            />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <TextBlock FontFamily="Verdana" FontSize="11"
+               Margin="5,15,0,5" FontWeight="Bold">Morphs:</TextBlock>
+            <ListBox 
+                Width="400" 
+                Margin="10" 
+                Name="MorphList"
+                PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
+                HorizontalContentAlignment="Stretch"
+                ItemsSource="{Binding}"
+                ItemTemplate="{StaticResource MorphTemplate}"
+            />
+        </StackPanel>
+
+    </Grid>
+</Window>
