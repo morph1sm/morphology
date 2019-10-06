@@ -1,21 +1,53 @@
 ﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Morphology.Data;
+using Newtonsoft.Json.Linq;
 
 namespace Morphology
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : INotifyPropertyChanged
     {
         public Regions regions = null;
         ListBox dragSource = null;
+        private SettingHandler<Settings> _currentSettingHandler;
+
+        public SettingHandler<Settings> CurrentSettingHandler
+        {
+            get => _currentSettingHandler;
+            set
+            {
+                _currentSettingHandler = value; 
+                OnPropertyChanged();
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+            LoadSettings();
         }
+
+        private void LoadSettings()
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var settingfilename = "appsettings.xml";
+            var fullsettingpath = Path.Combine(baseDirectory, settingfilename);
+            CurrentSettingHandler = new SettingHandler<Settings>(new FileInfo(fullsettingpath));
+            if (!string.IsNullOrEmpty(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder) )
+            {
+                regions = new Regions(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder);
+                DataContext = regions;
+            }
+        }
+
         private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             ListBox source = (ListBox)sender;
@@ -53,19 +85,28 @@ namespace Morphology
             // to the region they were dropped on
             region.TransferMorphs(dragSource.SelectedItems);
 
-            // change button caption to indicate that there are changes to be saved
-            SaveButton.Content = "Apply Changes";
+            if (SettingHandler<Settings>.CurrentInstance.LoadedSettings.AutoApplyChanges)
+            {
+                OnSave(null, null);
+            }
+            else
+            {
+                // change button caption to indicate that there are changes to be saved
+                SaveButton.Content = "Apply Changes";
+            }
         }
         private void OnOpenFolder(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
+                dialog.SelectedPath = CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder ?? "";
                 System.Windows.Forms.DialogResult result = dialog.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     // e.g."E:/VAM/Custom/Atom/Person/Morphs"
                     regions = new Regions(dialog.SelectedPath); 
                     DataContext = regions;
+                    CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder = dialog.SelectedPath;
                 }
             }
         }
@@ -78,8 +119,15 @@ namespace Morphology
             else
             {
                 regions.ApplyAllChanges();
+                SaveButton.Content = "Refresh";
             }
         }
-        
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

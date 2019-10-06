@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Collections;
+using System.Windows.Media;
 
 namespace Morphology
 {
@@ -14,18 +15,32 @@ namespace Morphology
         // Flags VaM's built-in category (region) names
         private readonly bool _standard;
         private readonly Morphs _morphs = new Morphs();
+        private Brush _displayColor = Brushes.LightGray;
 
         public Region(string name)
         {
             _name = name;
             _standard = false;
         }
+        public Region(string name, Brush displaycolor)
+        {
+            _name = name;
+            _standard = false;
+            DisplayColor = displaycolor;
+        }
+
         public Region(string name, bool standard)
         {
             _name = name;
             _standard = standard;
         }
-        
+        public Region(string name, Brush displaycolor, bool standard)
+        {
+            _name = name;
+            _standard = standard;
+            DisplayColor = displaycolor;
+        }
+
         public bool IsStandard
         {
             get { return _standard; }
@@ -74,6 +89,17 @@ namespace Morphology
                 return count + " morphs";
             }
         }
+
+        public Brush DisplayColor
+        {
+            get => _displayColor;
+            set
+            {
+                _displayColor = value; 
+                OnPropertyChanged("DisplayColor");
+            }
+        }
+
         internal void TransferMorphs(IList selectedItems)
         {
             List<Morph> dragged = selectedItems.Cast<Morph>().ToList();
