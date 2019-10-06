@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace Morphology
 {
@@ -14,16 +10,11 @@ namespace Morphology
     /// </summary>
     public partial class MainWindow : Window
     {
+        public Regions regions = null;
         ListBox dragSource = null;
         public MainWindow()
         {
             InitializeComponent();
-        }
-        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            Region region = (sender as ListBox).SelectedItem as Region;
-
-            DataContext = region.morphs;
         }
         private void ListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -33,19 +24,19 @@ namespace Morphology
         }
         private void ListBoxItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ListBoxItem dragged = (ListBoxItem)sender;
+            //ListBoxItem dragged = (ListBoxItem)sender;
 
             // ensure that dragged items are selected, so the target list box 
             // knows which items are being transferred
-            dragged.IsSelected = true;
+
+            // This seems iffy
+            //dragged.IsSelected = true;
         }
         private void Region_DragEnter(object sender, DragEventArgs args)
         {
-            Console.WriteLine("Region enter");
         }
         private void Region_DragLeave(object sender, DragEventArgs args)
         {
-            Console.WriteLine("Region leave");
         }
         private void Region_Drop(object sender, DragEventArgs args)
         {
@@ -61,6 +52,34 @@ namespace Morphology
             // transfer the selected Morphs from whatever region their located in 
             // to the region they were dropped on
             region.TransferMorphs(dragSource.SelectedItems);
-        }        
+
+            // change button caption to indicate that there are changes to be saved
+            SaveButton.Content = "Apply Changes";
+        }
+        private void OnOpenFolder(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    // e.g."E:/VAM/Custom/Atom/Person/Morphs"
+                    regions = new Regions(dialog.SelectedPath); 
+                    DataContext = regions;
+                }
+            }
+        }
+        private void OnSave(object sender, RoutedEventArgs e)
+        {
+            if (regions == null)
+            {
+                MessageBox.Show("Please select your morph folder location first.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                regions.ApplyAllChanges();
+            }
+        }
+        
     }
 }

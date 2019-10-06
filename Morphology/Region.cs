@@ -11,10 +11,9 @@ namespace Morphology
     public class Region : INotifyPropertyChanged
     {
         private string _name;
-        // Signifies VaM's built-in region names
+        // Flags VaM's built-in category (region) names
         private readonly bool _standard;
-
-        public Morphs morphs = new Morphs();
+        private readonly Morphs _morphs = new Morphs();
 
         public Region(string name)
         {
@@ -26,6 +25,7 @@ namespace Morphology
             _name = name;
             _standard = standard;
         }
+        
         public bool IsStandard
         {
             get { return _standard; }
@@ -44,6 +44,10 @@ namespace Morphology
                 OnPropertyChanged("Name");
             }
         }
+        public Morphs Morphs
+        {
+            get { return _morphs; }
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         public override string ToString() => _name;
         protected void OnPropertyChanged(string info)
@@ -55,7 +59,7 @@ namespace Morphology
         {
             get
             {
-                long count = morphs.Count;
+                long count = _morphs.Count;
 
                 if (count == 0)
                 {

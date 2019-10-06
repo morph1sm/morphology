@@ -1,12 +1,25 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 
 namespace Morphology
 {
     public class Regions : ObservableCollection<Region>
     {
-        public Regions()
+        public readonly string _morph_folder;
+        public Regions(string _folder)
         {
-            // VaM Standard Regions
+            _morph_folder = _folder;
+            ApplyVaMStandardRegions();
+            ScanFolder(_morph_folder);
+        }
+        public string Folder
+        {
+            get { return _morph_folder; }
+        }
+        private void ApplyVaMStandardRegions() {    
             Add(new Region("Morph/Anus", true));
             Add(new Region("Morph/Arms", true));
             Add(new Region("Morph/Back", true));
@@ -53,20 +66,63 @@ namespace Morphology
             Add(new Region("Pose/Head/Mouth/Tongue", true));
             Add(new Region("Pose/Head/Nose", true));
             Add(new Region("Pose/Head/Visemes", true));
+        }
+            
+        internal void ScanFolder(string dir)
+        {
+            try
+            {
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    foreach (string filepath in Directory.GetFiles(sub, "*.vmi"))
+                    {
+                        AddCustomMorph(new Morph(filepath));
+                    }
+                    ScanFolder(sub);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        private void AddCustomMorph(Morph morph)
+        {
+            bool morphAddedToExistingRegion = false;
+            foreach (Region region in this)
+            {
+                if (region.Name == morph.Region)
+                {
+                    morph.Parent = region;
+                    region.Morphs.Add(morph);
+                    morphAddedToExistingRegion = true;
+                }
+            }
 
+            if (!morphAddedToExistingRegion)
+            {
+                // this morph has a custom region that's not yet listed
+                // create anew region before adding this morph
+                Region region = new Region(morph.Region);
+                morph.Parent = region;
+                region.Morphs.Add(morph);
+                Add(region);
+            }
+        }
+        internal void ApplyAllChanges()
+        {
+            foreach (Region region in this)
+            {
+                foreach (Morph morph in region.Morphs)
+                {
+                    morph.Save();
+                }
+            }
 
-            // TODO: Remove these test custom regions
-            Add(new Region("__Alter3go__"));
-
-            Region bbw = new Region("Big Girl Morphs");
-            bbw.morphs.Add(new Morph("PHMBGMChin01", "Chin 01", bbw));
-            bbw.morphs.Add(new Morph("PHMBGMChin02", "Chin 02", bbw));
-            Add(bbw);
-
-            Region af = new Region("Asian Faces");
-            af.morphs.Add(new Morph("AFNose01", "Nose 01", af));
-            af.morphs.Add(new Morph("AFNose02", "Nose 02", af));
-            Add(af);
+            // rescan morphs after applying all changes
+            ClearItems();
+            ApplyVaMStandardRegions();
+            ScanFolder(_morph_folder);
         }
     }
 }

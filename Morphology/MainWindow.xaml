@@ -6,45 +6,68 @@
         xmlns:local="clr-namespace:Morphology"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1000" Width="800">
+        Title="Morphology" Height="800" Width="1200">
 
     <Window.Resources>
-        <local:Regions x:Key="regions" />
-        <local:Morphs x:Key="morphs"/>
-        <CollectionViewSource x:Key="sortedRegions" Source="{StaticResource regions}">
+        <CollectionViewSource x:Key="sortedRegions" Source="{Binding}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>
-
+    
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="26"/>
-            <RowDefinition/>
+            <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid>
-            <Label Margin="10, 0" Content="Installed Regions"/>
+        <Grid Grid.ColumnSpan="2">
+            <Label 
+                Margin="10, 0" 
+                VerticalAlignment="Center" 
+                Content="{Binding Path=Folder, FallbackValue=Select a folder containing VaM morph files}"/>
+            <Button 
+                Name="OpenFolder" 
+                Margin="10, 0" 
+                Padding="10, 6"
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center" 
+                Click="OnOpenFolder">
+                Select Morph Folder
+            </Button>
         </Grid>
 
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="1" >
+            <Label Margin="10, 0" Content="Installed Regions"/>
+            <Button 
+                Name="SaveButton" 
+                Margin="10, 0"
+                Padding="10, 2"
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center" 
+                Click="OnSave">
+                Refresh
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1">
             <Label Margin="10, 0" Content="{Binding ElementName=regionsListBox, Path=SelectedItem.Name}"/>
         </Grid>
-        
-        <Grid Grid.Row="1">
+
+        <Grid Grid.Row="2">
             <ListBox 
                 Name="regionsListBox"
                 ScrollViewer.VerticalScrollBarVisibility="Visible"
                 ItemsSource="{Binding Source={StaticResource sortedRegions}}"
                 IsSynchronizedWithCurrentItem="True"
-                SelectionChanged="ListBox_SelectionChanged"
                 Margin="10">
-                
+
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="0"/>
@@ -84,15 +107,15 @@
             </ListBox>
         </Grid>
 
-        <Grid Grid.Row="1" Grid.Column="1">
+        <Grid Grid.Row="2" Grid.Column="1">
             <ListBox 
                 Margin="10" 
                 Name="MorphList"
                 SelectionMode="Extended"
                 IsSynchronizedWithCurrentItem="True"
                 PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
-                ItemsSource="{Binding}">
-                
+                ItemsSource="{Binding ElementName=regionsListBox, Path=SelectedItem.Morphs}">
+
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="0"/>
@@ -110,6 +133,7 @@
                             </Grid.RowDefinitions>
                             <TextBlock FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
                             <TextBlock Grid.Row="1" Margin="10, 0" Text="{Binding ID}"/>
+                            <TextBlock Grid.Row="1" Margin="10, 0" HorizontalAlignment="Right" Text="{Binding Filepath}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
