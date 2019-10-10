@@ -72,6 +72,7 @@
     <Compile Include="Data\Extensions.cs" />
     <Compile Include="Data\SettingHandler.cs" />
     <Compile Include="Data\Settings.cs" />
+    <Compile Include="Data\VisualTree.cs" />
     <Compile Include="Regions.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="MainWindow.xaml.cs">

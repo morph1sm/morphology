@@ -16,8 +16,8 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>
-    
-    <Grid>
+
+    <Grid Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="2*"/>
@@ -93,7 +93,8 @@
                             AllowDrop="True" 
                             Drop="Region_Drop"
                             DragEnter="Region_DragEnter"
-                            DragLeave="Region_DragLeave">
+                            DragLeave="Region_DragLeave"
+                            >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="20"/>
                                 <ColumnDefinition/>
@@ -123,7 +124,11 @@
                 Name="MorphList"
                 SelectionMode="Extended"
                 IsSynchronizedWithCurrentItem="True"
-                PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
+                PreviewMouseDown="ListBox_PreviewMouseDown"
+                PreviewMouseUp="ListBox_PreviewMouseUp"
+                PreviewMouseMove="ListBox_PreviewMouseMove"
+                LostMouseCapture="ListBox_LostMouseCapture"
+                GiveFeedback="ListBox_GiveFeedback"
                 ItemsSource="{Binding ElementName=regionsListBox, Path=SelectedItem.Morphs}">
 
                 <ListBox.ItemContainerStyle>
@@ -131,7 +136,13 @@
                         <Setter Property="Padding" Value="0"/>
                         <Setter Property="Margin" Value="6"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="Red"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
+                   
                 </ListBox.ItemContainerStyle>
 
                 <ListBox.ItemTemplate>
@@ -141,9 +152,13 @@
                                 <RowDefinition/>
                                 <RowDefinition Height="20" />
                             </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
                             <TextBlock FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
-                            <TextBlock Grid.Row="1" Margin="10, 0" Text="{Binding ID}"/>
-                            <TextBlock Grid.Row="1" Margin="10, 0" HorizontalAlignment="Right" Text="{Binding Filepath}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="10, 0" Text="{Binding ID}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

@@ -116,10 +116,9 @@ namespace Morphology
             }
         }
 
-        internal void TransferMorphs(IList selectedItems)
+        internal void TransferMorphs(List<Morph> selectedItems)
         {
-            List<Morph> dragged = selectedItems.Cast<Morph>().ToList();
-            foreach (Morph morph in dragged)
+            foreach (Morph morph in selectedItems)
             {
                 morph.MoveToRegion(this);
             }
