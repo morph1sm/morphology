@@ -15,13 +15,26 @@ namespace Morphology
         // Flags VaM's built-in category (region) names
         private readonly bool _standard;
         private readonly Morphs _morphs = new Morphs();
+
+        //Default Color for Standard Region
         private Brush _displayColor = Brushes.LightGray;
 
         public Region(string name)
         {
             _name = name;
             _standard = false;
+            ApplyColorScheme();   
         }
+
+        //If the Current Morph is not a VAM-Standard-Region, the Color-Scheme applies.
+        private void ApplyColorScheme()
+        {
+            if (!_standard)
+            {
+                DisplayColor = Brushes.LightBlue;
+            }
+        }
+
         public Region(string name, Brush displaycolor)
         {
             _name = name;
@@ -33,12 +46,15 @@ namespace Morphology
         {
             _name = name;
             _standard = standard;
+            ApplyColorScheme();
         }
+
         public Region(string name, Brush displaycolor, bool standard)
         {
             _name = name;
             _standard = standard;
             DisplayColor = displaycolor;
+            ApplyColorScheme();
         }
 
         public bool IsStandard
