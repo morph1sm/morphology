@@ -10,6 +10,9 @@ using System.Xml.Serialization;
 
 namespace Morphology.Data
 {
+    /// <summary>
+    /// Setting Class that gets Serialized to the XML-Setting File. Add any new Settings as a Property here
+    /// </summary>
     public class Settings : INotifyPropertyChanged
     {
         public string CurrentlySelectedFolder

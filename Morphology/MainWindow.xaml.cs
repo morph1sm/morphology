@@ -49,14 +49,19 @@ namespace Morphology
             LoadSettings();
         }
 
+        //Load the Local Settings-Store from the Auto-Created Xml File.
         private void LoadSettings()
         {
+            //Current Directory where the Executable is located
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var settingfilename = "appsettings.xml";
             var fullsettingpath = Path.Combine(baseDirectory, settingfilename);
+            //Create an Instance of the SettingHandler Class that does all the Setting Heavy Lifting
             CurrentSettingHandler = new SettingHandler<Settings>(new FileInfo(fullsettingpath));
-            if (!string.IsNullOrEmpty(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder) )
+
+            if (!string.IsNullOrEmpty(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder))
             {
+                //Load the RegionsFolder from the Settings, IF they exist
                 regions = new Regions(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder);
                 DataContext = regions;
             }
@@ -74,29 +79,31 @@ namespace Morphology
             public Int32 Y;
         };
 
-        private void StartDrag(ListBox listView)
+        private void StartDrag(ListBox listBox)
         {
-            IList Selection = listView.SelectedItems;
+            IList Selection = listBox.SelectedItems;
 
-            if (Selection.Count == 0)
-
-                return;
+            //Are we Dragging anything?
+            if (Selection.Count == 0) return;
             
-            var items = listView.SelectedItems.Cast<Morph>().ToList();
+            var items = listBox.SelectedItems.Cast<Morph>().ToList();
 
             List<FrameworkElement> itemvisuals = new List<FrameworkElement>();
 
             items.ForEach(x =>
             {
-                itemvisuals.Add(listView.ItemContainerGenerator.ContainerFromItem(x) as FrameworkElement);
+                //Find each of the selected Items in the visual Tree of the ListBox
+                itemvisuals.Add(listBox.ItemContainerGenerator.ContainerFromItem(x) as FrameworkElement);
             });
 
+            //Create a Visual Representation of the Items beeing dragged
             CreateDragDropWindow(itemvisuals);
 
-
-            DragDrop.DoDragDrop(listView, items,DragDropEffects.Copy | DragDropEffects.Move);
+            //Do the REAL Drag & Drop
+            DragDrop.DoDragDrop(listBox, items,DragDropEffects.Copy | DragDropEffects.Move);
 
             if (_dragdropWindow == null) return;
+
             //Handle the Drag-Window
             _dragdropWindow.Close();
             _dragdropWindow = null;
@@ -127,10 +134,12 @@ namespace Morphology
             //Create a Rectangle for each Visual Representation of the Control, that is being dragged.
             dragElements.ForEach(x =>
             {
-                Rectangle r = new Rectangle();
-                r.Width = x.ActualWidth;
-                r.Height = x.ActualHeight;
-                r.Fill = new VisualBrush(x);
+                Rectangle r = new Rectangle
+                {
+                    Width = x.ActualWidth,
+                    Height = x.ActualHeight,
+                    Fill = new VisualBrush(x)
+                };
                 panel.Children.Add(r);
             });
             
@@ -146,24 +155,18 @@ namespace Morphology
 
         private void ListBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            ListBox listView = (ListBox)sender;
+            ListBox listBox = (ListBox)sender;
 
-            listView.Tag = null;
+            listBox.Tag = null;
 
-            PP = e.GetPosition(listView);
+            PP = e.GetPosition(listBox);
 
-            ListBoxItem Item = (ListBoxItem)VisualTree.GetParent(
-
-                e.OriginalSource, typeof(ListBoxItem));
-
+            ListBoxItem Item = (ListBoxItem)VisualTree.GetParent(e.OriginalSource, typeof(ListBoxItem));
 
             if (Item == null) return;
-            if (Item.IsSelected && listView.CaptureMouse())
-            {
-                e.Handled = true;
-                listView.Tag = Item;
-
-            }
+            if (!Item.IsSelected || !listBox.CaptureMouse()) return;
+            e.Handled = true;
+            listBox.Tag = Item;
         }
 
         private void ListBox_PreviewMouseUp(object sender, MouseButtonEventArgs e)
@@ -176,36 +179,31 @@ namespace Morphology
                 _dragdropWindow = null;
             }
 
-            ListBox listView = (ListBox)sender;
+            ListBox listBox = (ListBox)sender;
 
-            ListBoxItem Item = (ListBoxItem)listView.Tag;
+            ListBoxItem item = (ListBoxItem)listBox.Tag;
 
-            listView.Tag = null;
+            listBox.Tag = null;
 
-            if (Item == null)
+            if (item == null) return;
 
-                return;
-
-            if (!listView.IsMouseCaptured)
-
-                return;
+            if (!listBox.IsMouseCaptured) return; //Skip if the Mouse is not Capured anymore
 
             e.Handled = true;
 
-            listView.ReleaseMouseCapture();
+            listBox.ReleaseMouseCapture(); // Release Mouse Capture
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                Item.IsSelected = !Item.IsSelected; 
+                item.IsSelected = !item.IsSelected; 
             }
             else
             {
-                listView.SelectedItems.Clear();
-
-                Item.IsSelected = true;
+                listBox.SelectedItems.Clear();
+                item.IsSelected = true;
             }
 
-            if (!Item.IsKeyboardFocused) Item.Focus();
+            if (!item.IsKeyboardFocused) item.Focus();
         }
 
         private void ListBox_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -233,8 +231,8 @@ namespace Morphology
 
         private void ListBox_LostMouseCapture(object sender, MouseEventArgs e)
         {
+            //Cleanup Variables
             ListBox listView = (ListBox)sender;
-
             listView.Tag = null;
         }
 
@@ -244,10 +242,13 @@ namespace Morphology
             Win32Point w32Mouse = new Win32Point();
             GetCursorPos(ref w32Mouse);
 
+            int mousecursorOffsetX = 20; //The Offset from the Mousecursor X Position
+            int mousecursorOffsetY = 20; //The Offsetfrom the Mousecursor Y Position
+
             if (_dragdropWindow != null)
             {
-                _dragdropWindow.Left = w32Mouse.X + 20;
-                _dragdropWindow.Top = w32Mouse.Y + 20;
+                _dragdropWindow.Left = w32Mouse.X + mousecursorOffsetX;
+                _dragdropWindow.Top = w32Mouse.Y + mousecursorOffsetY;
             }
         }
 
@@ -258,6 +259,7 @@ namespace Morphology
         private void Region_DragLeave(object sender, DragEventArgs args)
         {
         }
+
         private void Region_Drop(object sender, DragEventArgs args)
         {
             // Drag event is captured by the whole list item (Grid element)
@@ -286,6 +288,7 @@ namespace Morphology
                 SaveButton.Content = "Apply Changes";
             }
         }
+
         private void OnOpenFolder(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
@@ -301,6 +304,7 @@ namespace Morphology
                 }
             }
         }
+
         private void OnSave(object sender, RoutedEventArgs e)
         {
             if (regions == null)

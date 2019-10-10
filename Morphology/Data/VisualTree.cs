@@ -8,6 +8,7 @@ using System.Windows.Media;
 
 namespace Morphology.Data
 {
+    //Helper Class for the VisualTreeHelper for XAML Items
     public static class VisualTree
     {
         public static object GetParent(object child, Type parentType)
