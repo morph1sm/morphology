@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Morphology"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:data="clr-namespace:Morphology.Data"
         mc:Ignorable="d"
-        Title="Morphology" Height="800" Width="1200">
+        Title="Morphology" Height="800" Width="1200" Name="_mainWindow">
 
     <Window.Resources>
         <CollectionViewSource x:Key="sortedRegions" Source="{Binding}">
@@ -15,8 +16,8 @@
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </Window.Resources>
-    
-    <Grid>
+
+    <Grid Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="2*"/>
@@ -27,20 +28,29 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid Grid.ColumnSpan="2">
+        <Grid Grid.Column="0">
             <Label 
                 Margin="10, 0" 
                 VerticalAlignment="Center" 
                 Content="{Binding Path=Folder, FallbackValue=Select a folder containing VaM morph files}"/>
-            <Button 
-                Name="OpenFolder" 
-                Margin="10, 0" 
-                Padding="10, 6"
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Center" 
-                Click="OnOpenFolder">
-                Select Morph Folder
-            </Button>
+        </Grid>
+        <Grid Grid.Column="1" Grid.Row="0">
+            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
+                <Button 
+                    Name="OpenFolder" 
+                    Width="150"
+                    Margin="10,0,0,0"
+                    Click="OnOpenFolder"
+                    Content="{Binding Path=Folder, Converter={data:ValueNotNullConverter}, ConverterParameter=Change Morph Folder,FallbackValue=Select Morph Folder}">
+                </Button>
+                <StackPanel Margin="10,0,0,0" Orientation="Horizontal" FlowDirection="LeftToRight">
+                    <Label VerticalAlignment="Center">
+                        Auto-Apply Changes
+                    </Label>
+                    <CheckBox DataContext="this" VerticalAlignment="Center" IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.AutoApplyChanges,Mode=TwoWay}"/>
+                </StackPanel>
+                
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Row="1" >
@@ -83,7 +93,8 @@
                             AllowDrop="True" 
                             Drop="Region_Drop"
                             DragEnter="Region_DragEnter"
-                            DragLeave="Region_DragLeave">
+                            DragLeave="Region_DragLeave"
+                            >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="20"/>
                                 <ColumnDefinition/>
@@ -95,7 +106,7 @@
                             <Grid 
                                 Grid.RowSpan="2" 
                                 Margin="0,0,10,0" 
-                                Background="LightGray" 
+                                Background="{Binding DisplayColor}" 
                                 Width="10" 
                                 Height="50" 
                                 HorizontalAlignment="Left" />
@@ -113,7 +124,11 @@
                 Name="MorphList"
                 SelectionMode="Extended"
                 IsSynchronizedWithCurrentItem="True"
-                PreviewMouseLeftButtonDown="ListBox_PreviewMouseLeftButtonDown"
+                PreviewMouseDown="ListBox_PreviewMouseDown"
+                PreviewMouseUp="ListBox_PreviewMouseUp"
+                PreviewMouseMove="ListBox_PreviewMouseMove"
+                LostMouseCapture="ListBox_LostMouseCapture"
+                GiveFeedback="ListBox_GiveFeedback"
                 ItemsSource="{Binding ElementName=regionsListBox, Path=SelectedItem.Morphs}">
 
                 <ListBox.ItemContainerStyle>
@@ -121,7 +136,13 @@
                         <Setter Property="Padding" Value="0"/>
                         <Setter Property="Margin" Value="6"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="Red"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
+                   
                 </ListBox.ItemContainerStyle>
 
                 <ListBox.ItemTemplate>
@@ -131,9 +152,13 @@
                                 <RowDefinition/>
                                 <RowDefinition Height="20" />
                             </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
                             <TextBlock FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
-                            <TextBlock Grid.Row="1" Margin="10, 0" Text="{Binding ID}"/>
-                            <TextBlock Grid.Row="1" Margin="10, 0" HorizontalAlignment="Right" Text="{Binding Filepath}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="10, 0" Text="{Binding ID}"/>
+                            <TextBlock Grid.Column="1" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

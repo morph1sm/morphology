@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Windows.Media;
 
 namespace Morphology
 {
@@ -13,6 +15,7 @@ namespace Morphology
         {
             _morph_folder = _folder;
             ApplyVaMStandardRegions();
+
             ScanFolder(_morph_folder);
         }
         public string Folder
@@ -118,11 +121,11 @@ namespace Morphology
                     morph.Save();
                 }
             }
-
             // rescan morphs after applying all changes
             ClearItems();
             ApplyVaMStandardRegions();
             ScanFolder(_morph_folder);
+
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Collections;
+using System.Windows.Media;
 
 namespace Morphology
 {
@@ -15,17 +16,47 @@ namespace Morphology
         private readonly bool _standard;
         private readonly Morphs _morphs = new Morphs();
 
+        //Default Color for Standard Region
+        private Brush _displayColor = Brushes.LightGray;
+
         public Region(string name)
         {
             _name = name;
             _standard = false;
+            ApplyColorScheme();   
         }
+
+        //If the Current Morph is not a VAM-Standard-Region, the Color-Scheme applies.
+        private void ApplyColorScheme()
+        {
+            if (!_standard)
+            {
+                DisplayColor = Brushes.LightBlue;
+            }
+        }
+
+        public Region(string name, Brush displaycolor)
+        {
+            _name = name;
+            _standard = false;
+            DisplayColor = displaycolor;
+        }
+
         public Region(string name, bool standard)
         {
             _name = name;
             _standard = standard;
+            ApplyColorScheme();
         }
-        
+
+        public Region(string name, Brush displaycolor, bool standard)
+        {
+            _name = name;
+            _standard = standard;
+            DisplayColor = displaycolor;
+            ApplyColorScheme();
+        }
+
         public bool IsStandard
         {
             get { return _standard; }
@@ -74,10 +105,20 @@ namespace Morphology
                 return count + " morphs";
             }
         }
-        internal void TransferMorphs(IList selectedItems)
+
+        public Brush DisplayColor
         {
-            List<Morph> dragged = selectedItems.Cast<Morph>().ToList();
-            foreach (Morph morph in dragged)
+            get => _displayColor;
+            set
+            {
+                _displayColor = value; 
+                OnPropertyChanged("DisplayColor");
+            }
+        }
+
+        internal void TransferMorphs(List<Morph> selectedItems)
+        {
+            foreach (Morph morph in selectedItems)
             {
                 morph.MoveToRegion(this);
             }
