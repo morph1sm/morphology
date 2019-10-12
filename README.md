@@ -7,16 +7,40 @@ A morph organizing tool for Virt-a-Mate
 - run `Morphology.exe`
 
 ## Usage
-- select a morph folder with the button on the top right (e.g. `/Vam/Custom/Atom` or drill deeper, if you like)
-- wait until all regions and morphs are loaded
-- select a region form the list on the left
-- select one or more morphs from the list on the right dislaying the current regions morphs
-- drag one or more morphs to any region
-- keep going until you're happy with the region arrangement
-- click the Apply Changes button to write all region changes out to the morph files (.vmi)
-- if you want to abandon your changes, just select a new morph folder or close the tool
+- open your morph folder, e.g. `/Vam/Custom/Atom` or drill deeper, if you like
+- select a region to display all morphs in that region
+- drag one or more morphs to any region to move them
+
+That's it.
+
+Some quick fixes for common morph issues in VaM:
+
+### Delete All DSF Files
+They are only needed one time for VaM to import them. After that, they only slow down scene loading in general. If needed, you can always copy the DSF files from your DAZ library again.
+
+### Move Auto Morphs to AUTO Region
+The main issue with organizing your morph library are the random morphs installed by opening VAC files in VaM. Every user has different ideas about region names and organisation schemes, so you end up with lots of different region names containing just 2 or 3 morphs.
+
+Fortunately, VaM copies morphs imported from scenes to a special subfolder called AUTO in your main morph folders. This quick fix, renames the region for any of these imported morphs to AUTO. All the funny region names go away and you can still find all these morphs in the AUTO region, should you want to move them into your regular library.
+
+### Delete All Auto Morphs
+If you are just exploring some random scenes, but are not interested in sorting out the various imported morphs, you can prune them from your library with this quick fix. If you want to restore a deleted auto morph, load the corresponding VAC file in VaM and they will be re-imported.
+
 
 ## Roadmap
-- **v0.2** will have a way to add and rename regions and will be able to install DAZ .dsf morphs. The latter will just copy the DSF to the morph folder, but will change the region to whatever region you drop the DSF file on. So, essentially just saving you a step or two.
-- **v0.3** will allow importing of .duf to .vap. This probably will be limited in what type of shape presets work. I'm still learning about this.
-- **v0.4** Will add a way to mark morphs by license, i.e. a way to easily see what should be removed when you publishing a look.
+### v0.3
+- add and rename regions
+- quick fix for invalid `CheekBone  Width Outer` morph for legacy scenes and VACs
+
+### v0.4
+- install DSF and pre-sort by region so the new morphs are imported into your region of choice
+- importing some DUF to VAP
+
+### v0.5
+- add license info to VMI (VaM morph metadata)
+- mark sharable vs copyrighted morphs
+- remove copyrighted morph refrences from scenes
+
+### v0.6
+- integrate with DAZ product lists to find original metadata for installed morphs
+- import and correct morph regions based on DAZ product lists

@@ -15,13 +15,13 @@ namespace Morphology.Data
     /// </summary>
     public class Settings : INotifyPropertyChanged
     {
-        public string CurrentlySelectedFolder
+        public string Folder
         {
-            get => _currentlySelectedFolder;
+            get => _folder;
             set
             {
-                var oldvalue = _currentlySelectedFolder;
-                _currentlySelectedFolder = value;
+                var oldvalue = _folder;
+                _folder = value;
                 if (value != oldvalue)
                 {
                     IsDirty = true;
@@ -29,14 +29,13 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
-
-        public bool AutoApplyChanges
+        public bool ShowStandardMorphs
         {
-            get => _autoApplyChanges;
+            get => _showStandardMorphs;
             set
             {
-                var oldvalue = _autoApplyChanges;
-                _autoApplyChanges = value;
+                var oldvalue = _showStandardMorphs;
+                _showStandardMorphs = value;
                 if (value != oldvalue)
                 {
                     IsDirty = true;
@@ -44,9 +43,49 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
-
+        public bool ShowCustomMorphs
+        {
+            get => _showCustomMorphs;
+            set
+            {
+                var oldvalue = _showCustomMorphs;
+                _showCustomMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public bool ShowAutoMorphs
+        {
+            get => _showAutoMorphs;
+            set
+            {
+                var oldvalue = _showAutoMorphs;
+                _showAutoMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public bool ShowBadMorphs
+        {
+            get => _showBadMorphs;
+            set
+            {
+                var oldvalue = _showBadMorphs;
+                _showBadMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
         private bool _isDirty;
-
         [XmlIgnore]
         public bool IsDirty
         {
@@ -61,11 +100,12 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
-
-        private string _currentlySelectedFolder;
-        private bool _autoApplyChanges;
+        private string _folder;
+        private bool _showStandardMorphs = true;
+        private bool _showCustomMorphs = true;
+        private bool _showAutoMorphs = true;
+        private bool _showBadMorphs = true;
         public event PropertyChangedEventHandler PropertyChanged;
-
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

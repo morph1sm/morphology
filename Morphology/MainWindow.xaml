@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ribbon="clr-namespace:System.Windows.Controls.Ribbon;assembly=System.Windows.Controls.Ribbon"
         xmlns:local="clr-namespace:Morphology"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:data="clr-namespace:Morphology.Data"
@@ -17,109 +18,142 @@
         </CollectionViewSource>
     </Window.Resources>
 
-    <Grid Name="LayoutRoot">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="2*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="26"/>
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Column="0">
-            <Label 
-                Margin="10, 0" 
-                VerticalAlignment="Center" 
-                Content="{Binding Path=Folder, FallbackValue=Select a folder containing VaM morph files}"/>
-        </Grid>
-        <Grid Grid.Column="1" Grid.Row="0">
-            <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
-                <Button 
-                    Name="OpenFolder" 
-                    Width="150"
-                    Margin="10,0,0,0"
+    <DockPanel>
+        <ribbon:Ribbon DockPanel.Dock="Top" Height="Auto">
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu Visibility="Collapsed">
+                </RibbonApplicationMenu>
+            </Ribbon.ApplicationMenu>
+            <RibbonTab Header="Home" KeyTip="H" >
+                <RibbonGroup x:Name="groupMorphFolder" Header="Morph Folder" Width="100">
+                    <RibbonButton 
+                    x:Name="OpenFolder" 
+                    Label="Open" 
                     Click="OnOpenFolder"
-                    Content="{Binding Path=Folder, Converter={data:ValueNotNullConverter}, ConverterParameter=Change Morph Folder,FallbackValue=Select Morph Folder}">
-                </Button>
-                <StackPanel Margin="10,0,0,0" Orientation="Horizontal" FlowDirection="LeftToRight">
-                    <Label VerticalAlignment="Center">
-                        Auto-Apply Changes
-                    </Label>
-                    <CheckBox DataContext="this" VerticalAlignment="Center" IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.AutoApplyChanges,Mode=TwoWay}"/>
-                </StackPanel>
+                    SmallImageSource="Icons/Folder_16x.png"/>
+                    <RibbonButton 
+                    x:Name="RefreshButton"
+                    Click="OnRefresh"
+                    Label="Refresh" 
+                    SmallImageSource="Icons/Refresh_16x.png"/>
+                </RibbonGroup>
+                <RibbonGroup x:Name="rbnGr2" Header="View Options">
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowStandardMorphs,Mode=TwoWay}"/>
+                        <Label>Standard Morphs</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowCustomMorphs,Mode=TwoWay}"/>
+                        <Label>Custom Morphs</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowAutoMorphs,Mode=TwoWay}"/>
+                        <Label>Auto Morphs</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowBadMorphs,Mode=TwoWay}"/>
+                        <Label>Bad Morphs</Label>
+                    </StackPanel>
+                </RibbonGroup>
+                <RibbonGroup x:Name="groupRegion" Header="Quick Fixes">
+                    <RibbonButton 
+                    x:Name="DeleteDSFButton"
+                    Click="OnDeleteDSF"
+                    Label="Delete All DSF Files" 
+                    SmallImageSource="Icons/DeleteUser_16x.png"/>
+                    <RibbonButton 
+                    x:Name="DeleteAutoButton"
+                    Click="OnDeleteAUTO"
+                    Label="Delete All AUTO Morphs" 
+                    SmallImageSource="Icons/DeleteFolder_16x.png"/>
+                    <RibbonButton 
+                    x:Name="AutoRegionButton"
+                    Click="OnAutoRegion"
+                    Label="Move Auto Morphs to AUTO Region" 
+                    SmallImageSource="Icons/MoveField_16x.png"/>
+                </RibbonGroup>
                 
-            </StackPanel>
-        </Grid>
+            </RibbonTab>
+        </ribbon:Ribbon>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" >
-            <Label Margin="10, 0" Content="Installed Regions"/>
-            <Button 
-                Name="SaveButton" 
-                Margin="10, 0"
-                Padding="10, 2"
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Center" 
-                Click="OnSave">
-                Refresh
-            </Button>
-        </Grid>
+            <Grid VerticalAlignment="Bottom">
+                <Label Margin="10, 0" Content="Installed Regions"/>
+            </Grid>
 
-        <Grid Grid.Row="1" Grid.Column="1">
-            <Label Margin="10, 0" Content="{Binding ElementName=regionsListBox, Path=SelectedItem.Name}"/>
-        </Grid>
+            <Grid Grid.Column="1" VerticalAlignment="Bottom">
+                <Label Margin="10, 0" Content="{Binding ElementName=regionsListBox, Path=SelectedItem.Name}"/>
+            </Grid>
 
-        <Grid Grid.Row="2">
-            <ListBox 
+            <Grid Grid.Row="1">
+                <ListBox 
                 Name="regionsListBox"
                 ScrollViewer.VerticalScrollBarVisibility="Visible"
                 ItemsSource="{Binding Source={StaticResource sortedRegions}}"
                 IsSynchronizedWithCurrentItem="True"
                 Margin="10">
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="6"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="6"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid 
-                            Background="WhiteSmoke"
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid 
                             AllowDrop="True" 
                             Drop="Region_Drop"
                             DragEnter="Region_DragEnter"
-                            DragLeave="Region_DragLeave"
-                            >
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition Height="10"/>
-                            </Grid.RowDefinitions>
-                            <Grid 
+                            DragLeave="Region_DragLeave">
+                                
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="10"/>
+                                </Grid.RowDefinitions>
+                                <Grid 
                                 Grid.RowSpan="2" 
                                 Margin="0,0,10,0" 
                                 Background="{Binding DisplayColor}" 
                                 Width="10" 
                                 Height="50" 
                                 HorizontalAlignment="Left" />
-                            <TextBlock Name="Region" Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Info}"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Grid>
+                                <TextBlock Name="Region" Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Info}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
 
-        <Grid Grid.Row="2" Grid.Column="1">
-            <ListBox 
+            <Grid Grid.Row="1" Grid.Column="1">
+                <ListBox 
                 Margin="10" 
                 Name="MorphList"
                 SelectionMode="Extended"
@@ -131,38 +165,43 @@
                 GiveFeedback="ListBox_GiveFeedback"
                 ItemsSource="{Binding ElementName=regionsListBox, Path=SelectedItem.Morphs}">
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="6"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Foreground" Value="Red"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                   
-                </ListBox.ItemContainerStyle>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="6"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Background="WhiteSmoke" Height="50">
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition Height="20" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="10, 0" Text="{Binding ID}"/>
-                            <TextBlock Grid.Column="1" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="50">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="20" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"></ColumnDefinition>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid 
+                                Grid.RowSpan="2" 
+                                Margin="0,0,10,0" 
+                                Background="{Binding DisplayColor}" 
+                                Width="10" 
+                                Height="50" 
+                                HorizontalAlignment="Left" />
+
+                                <TextBlock Grid.Column="1" FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
+                                <TextBlock Grid.Column="1" Grid.Row="1"  Margin="10, 0" Text="{Binding ID, StringFormat='ID {0}'}"/>
+                                <TextBlock Grid.Column="2" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
         </Grid>
-    </Grid>
+    </DockPanel>
 </Window>

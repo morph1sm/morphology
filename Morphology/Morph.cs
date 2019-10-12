@@ -2,20 +2,45 @@
 // // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Windows.Media;
 
 namespace Morphology
 {
-    public class Morph : INotifyPropertyChanged
+public class Morph : INotifyPropertyChanged
     {
         private readonly string _id;
         private readonly string _name;
         private readonly string _region;
         private readonly string _filepath;
+        private readonly bool _bad;
+        private readonly bool _auto;
 
         private Region _parent;
-
+        private Brush _displayColor = Brushes.LightGray;
+        private readonly List<string> _badMorphs = new List<string>(){
+            "GXF_G2F_TransZUpJaw",
+            "GXF_G2F_TransZLowJaw",
+            "DollHead",
+            "Lower head small",
+            "Old",
+            "Young",
+            "Thin",
+            "Face young",
+            "MCMJulieFingersFistL",
+            "MCMJulieFingersFistR",
+            "MCMJulieThumbFistL",
+            "MCMJulieThumbFistR",
+            "AAdream",
+            "Chest small X",
+            "Chest small Y",
+            "Chest small Z",
+            "Hip line up",
+            "Hip up",
+            "Face thin"
+        };
         public Morph()
         {
 
@@ -29,6 +54,32 @@ namespace Morphology
             _name = jsonObj["displayName"];
             _region = jsonObj["region"];
             _filepath = filepath;
+
+            _bad = _badMorphs.Contains(_name);
+            _auto = _filepath.Contains("\\AUTO\\");
+
+            ApplyColorScheme();
+        }
+        private void ApplyColorScheme()
+        {
+            // TODO: Include standard morphs marked as gray
+            // if (_custom)
+            // {
+            //      // Mark custom morphs (not provided by VaM) as blue.
+            DisplayColor = Brushes.LightBlue;
+            // }
+
+            if (_auto)
+            {
+                // Mark auto-imported (via VAC) morphs with as yellow.
+                DisplayColor = Brushes.LightGoldenrodYellow;
+            }
+
+            if (_bad)
+            {
+                // Mark known bad morphs as red overriding all other swatches.
+                DisplayColor = Brushes.Red;
+            }
         }
         public string ID
         {
@@ -45,6 +96,23 @@ namespace Morphology
         public string Filepath
         {
             get { return _filepath; }
+        }
+        public bool IsBad
+        {
+            get { return _bad; }
+        }
+        public bool IsAuto
+        {
+            get { return _auto; }
+        }
+        public Brush DisplayColor
+        {
+            get => _displayColor;
+            set
+            {
+                _displayColor = value;
+                OnPropertyChanged("DisplayColor");
+            }
         }
         public Region Parent
         {

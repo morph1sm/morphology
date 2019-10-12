@@ -26,12 +26,9 @@ namespace Morphology
     public partial class MainWindow : INotifyPropertyChanged
     {
         public Regions regions = null;
-        ListBox dragSource = null;
-        private ListBoxItem hitListBoxItem = null;
         Point PP; // Mouse position for last PreviewMouseDown event
         private SettingHandler<Settings> _currentSettingHandler;
         private Window _dragdropWindow = null;
-
 
         public SettingHandler<Settings> CurrentSettingHandler
         {
@@ -42,13 +39,15 @@ namespace Morphology
                 OnPropertyChanged();
             }
         }
-
         public MainWindow()
         {
             InitializeComponent();
             LoadSettings();
+            if (CurrentSettingHandler.LoadedSettings.Folder != null)
+            {
+                LoadMorphFolder();
+            }
         }
-
         //Load the Local Settings-Store from the Auto-Created Xml File.
         private void LoadSettings()
         {
@@ -58,15 +57,7 @@ namespace Morphology
             var fullsettingpath = Path.Combine(baseDirectory, settingfilename);
             //Create an Instance of the SettingHandler Class that does all the Setting Heavy Lifting
             CurrentSettingHandler = new SettingHandler<Settings>(new FileInfo(fullsettingpath));
-
-            if (!string.IsNullOrEmpty(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder))
-            {
-                //Load the RegionsFolder from the Settings, IF they exist
-                regions = new Regions(CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder);
-                DataContext = regions;
-            }
         }
-
         //DLL Imports for External Mouse Point Tracking
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -78,7 +69,6 @@ namespace Morphology
             public Int32 X;
             public Int32 Y;
         };
-
         private void StartDrag(ListBox listBox)
         {
             IList Selection = listBox.SelectedItems;
@@ -277,47 +267,153 @@ namespace Morphology
             var dragdata = (List<Morph>)(args.Data.GetData(typeof(List<Morph>)));
 
             region.TransferMorphs(dragdata);
-
-            if (SettingHandler<Settings>.CurrentInstance.LoadedSettings.AutoApplyChanges)
-            {
-                OnSave(null, null);
-            }
-            else
-            {
-                // change button caption to indicate that there are changes to be saved
-                SaveButton.Content = "Apply Changes";
-            }
         }
-
-        private void OnOpenFolder(object sender, RoutedEventArgs e)
+        private void LoadMorphFolder()
         {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
-            {
-                dialog.SelectedPath = CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder ?? "";
-                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK)
-                {
-                    // e.g."E:/VAM/Custom/Atom/Person/Morphs"
-                    regions = new Regions(dialog.SelectedPath); 
-                    DataContext = regions;
-                    CurrentSettingHandler.LoadedSettings.CurrentlySelectedFolder = dialog.SelectedPath;
-                }
-            }
-        }
-
-        private void OnSave(object sender, RoutedEventArgs e)
-        {
-            if (regions == null)
+            string folder = CurrentSettingHandler.LoadedSettings.Folder;
+            if (folder == null)
             {
                 MessageBox.Show("Please select your morph folder location first.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
-                regions.ApplyAllChanges();
-                SaveButton.Content = "Refresh";
+                // e.g."E:/VAM/Custom/Atom/Person/Morphs"
+                this.Title = "Morphology - " + folder;
+                regions = new Regions(folder);
+                DataContext = regions;
             }
         }
+        private void OnOpenFolder(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dialog.SelectedPath = CurrentSettingHandler.LoadedSettings.Folder ?? "";
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    CurrentSettingHandler.LoadedSettings.Folder = dialog.SelectedPath;
+                    LoadMorphFolder();
+                }
+            }
+        }
+        private void OnRefresh(object sender, RoutedEventArgs e)
+        {
+            LoadMorphFolder();
+        }
+        private void OnDeleteDSF(object sender, RoutedEventArgs e)
+        {
+            List<string> dsfFiles = GetDSFFilePaths(CurrentSettingHandler.LoadedSettings.Folder);
 
+            if (dsfFiles.Count > 0)
+            {
+                if (MessageBox.Show("Delete " + dsfFiles.Count + " DSF files from morph folder?", "Morphology", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    foreach (string file in dsfFiles)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            } else
+            {
+                MessageBox.Show("No DSF files where found in the selected morph folder.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        private List<string> GetDSFFilePaths(string dir)
+        {
+            List<string> dsfFiles = new List<string>();
+            try
+            {
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    dsfFiles.AddRange(Directory.GetFiles(sub, "*.dsf"));
+                    dsfFiles.AddRange(GetDSFFilePaths(sub));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return dsfFiles;
+        }
+        private void OnDeleteAUTO(object sender, RoutedEventArgs e)
+        {
+            List<string> morphFiles = GetAutoMorphFilePaths(CurrentSettingHandler.LoadedSettings.Folder);
+
+            if (morphFiles.Count > 0)
+            {
+                if (MessageBox.Show("Delete " + morphFiles.Count + " AUTO morphs from morph folder?", "Morphology", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    foreach (string file in morphFiles)
+                    {
+                        // delete both the meta data and binary morph files
+                        File.Delete(file);
+                        File.Delete(file.Replace(".vmi", ".vmb"));
+                    }
+
+                    // refresh region list
+                    LoadMorphFolder();
+                }
+            }
+            else
+            {
+                MessageBox.Show("No AUTO morph files where found in the selected morph folder.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        private List<string> GetAutoMorphFilePaths(string dir)
+        {
+            List<string> morphFiles = new List<string>();
+            try
+            {
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    if (sub.EndsWith("\\AUTO"))
+                    {
+                        morphFiles.AddRange(Directory.GetFiles(sub, "*.vmi"));
+                    }
+                    morphFiles.AddRange(GetAutoMorphFilePaths(sub));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return morphFiles;
+        }
+        private void OnAutoRegion(object sender, RoutedEventArgs e)
+        {
+            List<Morph> autoMorphs = regions.GetAutoMorphs();
+
+            if (autoMorphs.Count > 0)
+            {
+                if (MessageBox.Show("Move " + autoMorphs.Count + " AUTO morphs to the AUTO region?", "Morphology", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    Region auto = regions.FirstOrDefault(r => r.Name == "AUTO");
+
+                    if (auto == null)
+                    {
+                        auto = new Region("AUTO");
+                        regions.Add(auto);
+                    }
+
+                    foreach (Morph morph in autoMorphs)
+                    {
+                        // delete both the meta data and binary morph files
+                        morph.MoveToRegion(auto);
+                        morph.Save();
+                    }
+
+                    // refresh region list
+                    LoadMorphFolder();
+                }
+            }
+            else
+            {
+                MessageBox.Show("No AUTO morphs where found in any region.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+        }
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

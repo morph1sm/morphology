@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -112,20 +113,15 @@ namespace Morphology
                 Add(region);
             }
         }
-        internal void ApplyAllChanges()
+        internal List<Morph> GetAutoMorphs()
         {
+            List<Morph> autoMorphs = new List<Morph>();
+
             foreach (Region region in this)
             {
-                foreach (Morph morph in region.Morphs)
-                {
-                    morph.Save();
-                }
+                autoMorphs.AddRange(region.Morphs.Where(m => m.IsAuto));
             }
-            // rescan morphs after applying all changes
-            ClearItems();
-            ApplyVaMStandardRegions();
-            ScanFolder(_morph_folder);
-
+            return autoMorphs;
         }
     }
 }

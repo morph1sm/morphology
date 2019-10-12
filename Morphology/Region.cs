@@ -25,7 +25,6 @@ namespace Morphology
             _standard = false;
             ApplyColorScheme();   
         }
-
         //If the Current Morph is not a VAM-Standard-Region, the Color-Scheme applies.
         private void ApplyColorScheme()
         {
@@ -34,7 +33,6 @@ namespace Morphology
                 DisplayColor = Brushes.LightBlue;
             }
         }
-
         public Region(string name, Brush displaycolor)
         {
             _name = name;
@@ -94,7 +92,7 @@ namespace Morphology
 
                 if (count == 0)
                 {
-                    return "empty";
+                    return null;
                 }
 
                 if (count == 1)
@@ -105,7 +103,6 @@ namespace Morphology
                 return count + " morphs";
             }
         }
-
         public Brush DisplayColor
         {
             get => _displayColor;
@@ -115,12 +112,12 @@ namespace Morphology
                 OnPropertyChanged("DisplayColor");
             }
         }
-
         internal void TransferMorphs(List<Morph> selectedItems)
         {
             foreach (Morph morph in selectedItems)
             {
                 morph.MoveToRegion(this);
+                morph.Save();
             }
         }
     }
