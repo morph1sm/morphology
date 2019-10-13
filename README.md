@@ -1,5 +1,5 @@
-# morphology
-A morph organizing tool for Virt-a-Mate
+# Morphology
+A morph organizing tool for Virt-a-Mate.
 
 ## Installation
 - download the [lastest release](https://github.com/morph1sm/morphology/releases)
@@ -8,13 +8,13 @@ A morph organizing tool for Virt-a-Mate
 
 ## Usage
 - open your morph folder, e.g. `/Vam/Custom/Atom` or drill deeper, if you like
-- select a region to display all morphs in that region
-- drag one or more morphs to any region to move them
+- select a region from the Installed Regions list on the left to display all morphs belonging to that region in the morphs list on the right
+- drag morphs from the morphs list on the right to any region on the left to move them between regions
 
-That's it.
+That's it. Region changes you make are saved immediately and will be reflected in VaM when you load the next scene.
 
-Some quick fixes for common morph issues in VaM:
 
+Morphology also offers batch operations to quickly fix some common morph issues in VaM:
 ### Delete All DSF Files
 They are only needed one time for VaM to import them. After that, they only slow down scene loading in general. If needed, you can always copy the DSF files from your DAZ library again.
 
