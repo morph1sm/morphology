@@ -5,13 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 
 namespace Morphology
 {
     public class Regions : ObservableCollection<Region>
     {
-        public readonly string _morph_folder;
+        private readonly string _morph_folder;
         public Regions(string _folder)
         {
             _morph_folder = _folder;
@@ -22,6 +23,14 @@ namespace Morphology
         public string Folder
         {
             get { return _morph_folder; }
+        }
+        public int TotalCustomRegions
+        {
+            get { return this.Where(region => !region.IsStandard).Count(); }
+        }
+        public int TotalCustomMorphs
+        {
+            get { return this.Sum(region => region.Morphs.Count); }
         }
         private void ApplyVaMStandardRegions() {    
             Add(new Region("Morph/Anus", true));
@@ -80,14 +89,20 @@ namespace Morphology
                 {
                     foreach (string filepath in Directory.GetFiles(sub, "*.vmi"))
                     {
-                        AddCustomMorph(new Morph(filepath));
+                        try { 
+                            AddCustomMorph(new Morph(filepath));
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Could not load morph metadata from:\n\n" + filepath + "\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                     ScanFolder(sub);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show("Could not scan the selected folder.\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void AddCustomMorph(Morph morph)

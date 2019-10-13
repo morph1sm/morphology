@@ -97,12 +97,15 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <Grid VerticalAlignment="Bottom">
-                <Label Margin="10, 0" Content="Installed Regions"/>
-            </Grid>
+            <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight" VerticalAlignment="Bottom">
+                <TextBlock Margin="10, 0, 0, 0" Text="{Binding TotalCustomRegions, StringFormat='Found {0} custom regions '}"/>
+                <TextBlock Text="{Binding TotalCustomMorphs, StringFormat='from {0} custom morphs.'}"/>
+            </StackPanel>
 
             <Grid Grid.Column="1" VerticalAlignment="Bottom">
-                <Label Margin="10, 0" Content="{Binding ElementName=regionsListBox, Path=SelectedItem.Name}"/>
+                <TextBlock 
+                    Margin="10, 0" 
+                    Text="{Binding ElementName=regionsListBox, Path=SelectedItem.Name, StringFormat='Morphs in Region {0}:'}"/>
             </Grid>
 
             <Grid Grid.Row="1">
