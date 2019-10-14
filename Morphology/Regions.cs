@@ -7,15 +7,18 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using Morphology.Data;
 
 namespace Morphology
 {
     public class Regions : ObservableCollection<Region>
     {
         private readonly string _morph_folder;
-        public Regions(string _folder)
+        private readonly Settings _settings;
+        public Regions(string _folder, Settings settings)
         {
             _morph_folder = _folder;
+            _settings = settings;
             ApplyVaMStandardRegions();
 
             ScanFolder(_morph_folder);
@@ -89,8 +92,12 @@ namespace Morphology
                 {
                     foreach (string filepath in Directory.GetFiles(sub, "*.vmi"))
                     {
-                        try { 
-                            AddCustomMorph(new Morph(filepath));
+                        try {
+                            Morph morph = new Morph(filepath);
+
+                            if (MatchesFilter(morph)) { 
+                                AddCustomMorph(morph);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -104,6 +111,16 @@ namespace Morphology
             {
                 MessageBox.Show("Could not scan the selected folder.\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+        private bool MatchesFilter(Morph morph)
+        {
+            return
+                _settings.ShowAutoMorphs && morph.IsAuto ||
+                _settings.ShowBadMorphs && morph.IsBad ||
+                _settings.ShowCustomMorphs && !morph.IsStandard ||
+                _settings.ShowPoseMorphs && morph.IsPose ||
+                _settings.ShowShapeMorphs && !morph.IsPose ||
+                _settings.ShowStandardMorphs && morph.IsStandard;
         }
         private void AddCustomMorph(Morph morph)
         {

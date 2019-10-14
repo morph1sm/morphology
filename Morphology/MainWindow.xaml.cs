@@ -27,15 +27,15 @@ namespace Morphology
     {
         public Regions regions = null;
         Point PP; // Mouse position for last PreviewMouseDown event
-        private SettingHandler<Settings> _currentSettingHandler;
+        private SettingHandler<Settings> _settings;
         private Window _dragdropWindow = null;
 
-        public SettingHandler<Settings> CurrentSettingHandler
+        public SettingHandler<Settings> Settings
         {
-            get => _currentSettingHandler;
+            get => _settings;
             set
             {
-                _currentSettingHandler = value; 
+                _settings = value; 
                 OnPropertyChanged();
             }
         }
@@ -43,20 +43,20 @@ namespace Morphology
         {
             InitializeComponent();
             LoadSettings();
-            if (CurrentSettingHandler.LoadedSettings.Folder != null)
+            if (Settings.LoadedSettings.Folder != null)
             {
+                // If a folder was selected in a previous session, 
+                // reload the same folder when app starts up.
                 LoadMorphFolder();
             }
+            Settings.LoadedSettings.PropertyChanged += OnViewOptionChanged;
         }
-        //Load the Local Settings-Store from the Auto-Created Xml File.
         private void LoadSettings()
         {
-            //Current Directory where the Executable is located
-            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var settingfilename = "appsettings.xml";
-            var fullsettingpath = Path.Combine(baseDirectory, settingfilename);
-            //Create an Instance of the SettingHandler Class that does all the Setting Heavy Lifting
-            CurrentSettingHandler = new SettingHandler<Settings>(new FileInfo(fullsettingpath));
+            var settingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.xml");
+
+            // Load settings store from auto-created XML settings file.
+            Settings = new SettingHandler<Settings>(new FileInfo(settingsPath));
         }
         //DLL Imports for External Mouse Point Tracking
         [DllImport("user32.dll")]
@@ -270,28 +270,34 @@ namespace Morphology
         }
         private void LoadMorphFolder()
         {
-            string folder = CurrentSettingHandler.LoadedSettings.Folder;
+            string folder = Settings.LoadedSettings.Folder;
             if (folder == null)
             {
                 MessageBox.Show("Please select your morph folder location first.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
+                var splashScreen = new SplashScreen("Images/loading1.jpg");
+                
+                splashScreen.Show(false);
+
                 // e.g."E:/VAM/Custom/Atom/Person/Morphs"
                 this.Title = "Morphology - " + folder;
-                regions = new Regions(folder);
+                regions = new Regions(folder, Settings.LoadedSettings);
                 DataContext = regions;
+
+                splashScreen.Close(TimeSpan.FromSeconds(0));
             }
         }
         private void OnOpenFolder(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
-                dialog.SelectedPath = CurrentSettingHandler.LoadedSettings.Folder ?? "";
+                dialog.SelectedPath = Settings.LoadedSettings.Folder ?? "";
                 System.Windows.Forms.DialogResult result = dialog.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
-                    CurrentSettingHandler.LoadedSettings.Folder = dialog.SelectedPath;
+                    Settings.LoadedSettings.Folder = dialog.SelectedPath;
                     LoadMorphFolder();
                 }
             }
@@ -302,7 +308,7 @@ namespace Morphology
         }
         private void OnDeleteDSF(object sender, RoutedEventArgs e)
         {
-            List<string> dsfFiles = GetDSFFilePaths(CurrentSettingHandler.LoadedSettings.Folder);
+            List<string> dsfFiles = GetDSFFilePaths(Settings.LoadedSettings.Folder);
 
             if (dsfFiles.Count > 0)
             {
@@ -338,7 +344,7 @@ namespace Morphology
         }
         private void OnDeleteAUTO(object sender, RoutedEventArgs e)
         {
-            List<string> morphFiles = GetAutoMorphFilePaths(CurrentSettingHandler.LoadedSettings.Folder);
+            List<string> morphFiles = GetAutoMorphFilePaths(Settings.LoadedSettings.Folder);
 
             if (morphFiles.Count > 0)
             {
@@ -413,6 +419,14 @@ namespace Morphology
                 MessageBox.Show("No AUTO morphs where found in any region.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
+        }
+        private void OnViewOptionChanged(object sender, PropertyChangedEventArgs args)
+        {
+            Console.WriteLine("Property " + args.PropertyName + " changed");
+            if (args.PropertyName.StartsWith("Show"))
+            {
+                LoadMorphFolder();
+            }
         }
         public event PropertyChangedEventHandler PropertyChanged;
 

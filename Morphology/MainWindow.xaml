@@ -42,28 +42,42 @@
                         <CheckBox 
                             DataContext="this" 
                             VerticalAlignment="Center" 
-                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowStandardMorphs,Mode=TwoWay}"/>
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowStandardMorphs,Mode=TwoWay}"/>
                         <Label>Standard Morphs</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
                         <CheckBox 
                             DataContext="this" 
                             VerticalAlignment="Center" 
-                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowCustomMorphs,Mode=TwoWay}"/>
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowCustomMorphs,Mode=TwoWay}"/>
                         <Label>Custom Morphs</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
                         <CheckBox 
                             DataContext="this" 
                             VerticalAlignment="Center" 
-                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowAutoMorphs,Mode=TwoWay}"/>
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowShapeMorphs,Mode=TwoWay}"/>
+                        <Label>Shape Morphs</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowPoseMorphs,Mode=TwoWay}"/>
+                        <Label>Pose Morphs</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center" 
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowAutoMorphs,Mode=TwoWay}"/>
                         <Label>Auto Morphs</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
                         <CheckBox 
                             DataContext="this" 
                             VerticalAlignment="Center" 
-                            IsChecked="{Binding ElementName=_mainWindow,Path=CurrentSettingHandler.LoadedSettings.ShowBadMorphs,Mode=TwoWay}"/>
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowBadMorphs,Mode=TwoWay}"/>
                         <Label>Bad Morphs</Label>
                     </StackPanel>
                 </RibbonGroup>
@@ -127,10 +141,10 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid 
-                            AllowDrop="True" 
-                            Drop="Region_Drop"
-                            DragEnter="Region_DragEnter"
-                            DragLeave="Region_DragLeave">
+                                AllowDrop="True" 
+                                Drop="Region_Drop"
+                                DragEnter="Region_DragEnter"
+                                DragLeave="Region_DragLeave">
                                 
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="20"/>
@@ -140,14 +154,23 @@
                                     <RowDefinition/>
                                     <RowDefinition Height="10"/>
                                 </Grid.RowDefinitions>
+                                
                                 <Grid 
-                                Grid.RowSpan="2" 
-                                Margin="0,0,10,0" 
-                                Background="{Binding DisplayColor}" 
-                                Width="10" 
-                                Height="50" 
-                                HorizontalAlignment="Left" />
-                                <TextBlock Name="Region" Grid.Column="1" FontSize="16" VerticalAlignment="Center" Text="{Binding Name}"/>
+                                    Grid.RowSpan="2" 
+                                    Margin="0,0,10,0" 
+                                    Background="{Binding DisplayColor}" 
+                                    Width="10" 
+                                    Height="50" 
+                                    HorizontalAlignment="Left" />
+                                
+                                <TextBlock 
+                                    Name="Region" 
+                                    Grid.Column="1" 
+                                    FontSize="16" 
+                                    FontWeight="Bold"
+                                    VerticalAlignment="Center" 
+                                    Text="{Binding Name}"/>
+                                
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Info}"/>
                             </Grid>
                         </DataTemplate>
@@ -175,7 +198,7 @@
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
                         </Style>
                     </ListBox.ItemContainerStyle>
-
+                    
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Height="50">
@@ -185,7 +208,6 @@
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="20"></ColumnDefinition>
-                                    <ColumnDefinition Width="*"></ColumnDefinition>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
 
@@ -197,9 +219,28 @@
                                 Height="50" 
                                 HorizontalAlignment="Left" />
 
-                                <TextBlock Grid.Column="1" FontSize="16" Margin="10, 0" VerticalAlignment="Center" Text="{Binding DisplayName}"/>
-                                <TextBlock Grid.Column="1" Grid.Row="1"  Margin="10, 0" Text="{Binding ID, StringFormat='ID {0}'}"/>
-                                <TextBlock Grid.Column="2" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="LeftToRight" VerticalAlignment="Top">
+                                    <TextBlock 
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Margin="10, 0" 
+                                        VerticalAlignment="Center" 
+                                        Text="{Binding DisplayName}"/>
+                                    
+                                    <TextBlock Margin="10, 0" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="Text" Value="" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPose}" Value="True">
+                                                        <Setter Property="Text" Value="Pose" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Grid.Row="1" Margin="10, 0" HorizontalAlignment="Left" Text="{Binding Filepath}"/>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

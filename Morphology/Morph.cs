@@ -15,8 +15,10 @@ public class Morph : INotifyPropertyChanged
         private readonly string _name;
         private readonly string _region;
         private readonly string _filepath;
-        private readonly bool _bad;
-        private readonly bool _auto;
+        private readonly bool _is_pose;
+        private readonly bool _is_standard;
+        private readonly bool _known_as_bad;
+        private readonly bool _was_auto_imported;
 
         private Region _parent;
         private Brush _displayColor = Brushes.LightGray;
@@ -53,10 +55,20 @@ public class Morph : INotifyPropertyChanged
             _id = jsonObj["id"];
             _name = jsonObj["displayName"];
             _region = jsonObj["region"];
+            _is_pose = jsonObj["isPoseControl"] ?? true;
             _filepath = filepath;
 
-            _bad = _badMorphs.Contains(_name);
-            _auto = _filepath.Contains("\\AUTO\\");
+            // distinction between standard and custom morphs not yet implemented
+            // will add list of standard morphs later
+            _is_standard = false;
+
+            // bad morphs have side effects outside of their intended region
+            _known_as_bad = _badMorphs.Contains(_name);
+
+            // imported via VAC and stored in AUTO subfolder
+            _was_auto_imported = _filepath.Contains("\\AUTO\\");
+
+
 
             ApplyColorScheme();
         }
@@ -69,13 +81,13 @@ public class Morph : INotifyPropertyChanged
             DisplayColor = Brushes.LightBlue;
             // }
 
-            if (_auto)
+            if (_was_auto_imported)
             {
                 // Mark auto-imported (via VAC) morphs with as yellow.
                 DisplayColor = Brushes.LightGoldenrodYellow;
             }
 
-            if (_bad)
+            if (_known_as_bad)
             {
                 // Mark known bad morphs as red overriding all other swatches.
                 DisplayColor = Brushes.Red;
@@ -97,13 +109,21 @@ public class Morph : INotifyPropertyChanged
         {
             get { return _filepath; }
         }
-        public bool IsBad
-        {
-            get { return _bad; }
-        }
         public bool IsAuto
         {
-            get { return _auto; }
+            get { return _was_auto_imported; }
+        }
+        public bool IsBad
+        {
+            get { return _known_as_bad; }
+        }
+        public bool IsPose
+        {
+            get { return _is_pose; }
+        }
+        public bool IsStandard
+        {
+            get { return _is_standard; }
         }
         public Brush DisplayColor
         {

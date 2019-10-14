@@ -57,6 +57,34 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
+        public bool ShowShapeMorphs
+        {
+            get => _showShapeMorphs;
+            set
+            {
+                var oldvalue = _showShapeMorphs;
+                _showShapeMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public bool ShowPoseMorphs
+        {
+            get => _showPoseMorphs;
+            set
+            {
+                var oldvalue = _showPoseMorphs;
+                _showPoseMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
         public bool ShowAutoMorphs
         {
             get => _showAutoMorphs;
@@ -103,6 +131,8 @@ namespace Morphology.Data
         private string _folder;
         private bool _showStandardMorphs = true;
         private bool _showCustomMorphs = true;
+        private bool _showShapeMorphs = true;
+        private bool _showPoseMorphs = true;
         private bool _showAutoMorphs = true;
         private bool _showBadMorphs = true;
         public event PropertyChangedEventHandler PropertyChanged;
