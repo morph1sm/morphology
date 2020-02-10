@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -29,6 +32,7 @@ namespace Morphology
         Point PP; // Mouse position for last PreviewMouseDown event
         private SettingHandler<Settings> _settings;
         private Window _dragdropWindow = null;
+        private Dictionary<string, List<string>> _morph_references = new Dictionary<string, List<string>>();
 
         public SettingHandler<Settings> Settings
         {
@@ -268,25 +272,213 @@ namespace Morphology
 
             region.TransferMorphs(dragdata);
         }
+        internal void ScanSavesFolder(string dir)
+        {
+            try
+            {
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    foreach (string filepath in Directory.GetFiles(sub, "*.json"))
+                    {
+                        string morphListJSON="";
+                        var match = Regex.Match("","");
+                        try
+                        {
+                            Console.WriteLine("Scanning save {0}", filepath);
+
+                            App.Current.Dispatcher.Invoke((Action)delegate
+                            {
+                                this.Title = "Morphology - Scanning " + filepath;
+                            });
+
+                            // Example scene/look json
+                            // {
+                            //   ...
+                            //   "atoms": [
+                            //     ...
+                            //     {
+                            //       "id": "Girly Bob",
+                            //       "type": "Person",
+                            //       "storables": [
+                            //         ... 
+                            //         { 
+                            //           "id" : "geometry",
+                            //           "character": "Candy",
+                            //           "clothing": [ ],      // naked!
+                            //           "hair": [ ]           // bald!
+                            //           "morphs": [           // interesting bits!
+                            //             ...
+                            //             { "name": "Jaw Round", "value": "0.31231625" },
+                            //             { "name": "Jaw Width", "value": "-0.93873625" },
+                            //             { "name": "Jaw Height", "value": "-0.36259387" },
+                            //             ...
+                            //           ]
+                            //         }
+                            //       ]
+                            //     } 
+                            //   ]
+                            // }
+                            //
+                            // Instead of parsing the whole scene, cut out just the morphs list to speed up evaluation.
+                            string json = File.ReadAllText(filepath);
+                            int morphsPosition = json.IndexOf("\"morphs\"");
+                            if (morphsPosition > 0)
+                            {
+                                int morphListStart = json.IndexOf('[', morphsPosition);
+                                morphListJSON = json.Substring(morphListStart);
+
+                                // Find the next closing bracket that had some sort of white-space in front of it.
+                                // This avoids clipping the json array too early like in cases of brackets in names.
+                                // Thanks, "[Alter3go]". :p
+                                match = Regex.Match(morphListJSON, @"\s+]");
+                                morphListJSON = morphListJSON.Substring(0, match.Index+match.Length);
+
+                                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(morphListJSON);
+                                foreach (dynamic morph in jsonObj)
+                                {
+                                    string name = morph["name"];
+                                    if (!_morph_references.ContainsKey(name))
+                                    {
+                                        _morph_references[name] = new List<string>();
+                                    }
+                                    _morph_references[name].Add(filepath);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Could not load JSON from:\n\n" + filepath + "\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    ScanSavesFolder(sub);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not scan the selected folder.\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void LoadMorphFolder()
         {
             string folder = Settings.LoadedSettings.Folder;
-            if (folder == null)
-            {
-                MessageBox.Show("Please select your morph folder location first.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            else
-            {
-                var splashScreen = new SplashScreen("Images/loading1.jpg");
-                
-                splashScreen.Show(false);
-
-                // e.g."E:/VAM/Custom/Atom/Person/Morphs"
+            if (folder != null) {
                 this.Title = "Morphology - " + folder;
-                regions = new Regions(folder, Settings.LoadedSettings);
+                regions = new Regions(Settings.LoadedSettings, _morph_references);
                 DataContext = regions;
+            }
+        }
+        internal void TrimMorphsInSavesFolder(string dir)
+        {
+            try
+            {
+                foreach (string sub in Directory.GetDirectories(dir))
+                {
+                    foreach (string filepath in Directory.GetFiles(sub, "*.json"))
+                    {
+                        string morphListJSON = "";
+                        var match = Regex.Match("", "");
+                        try
+                        {
+                            Console.WriteLine("Scanning save {0}", filepath);
 
-                splashScreen.Close(TimeSpan.FromSeconds(0));
+                            App.Current.Dispatcher.Invoke((Action)delegate
+                            {
+                                this.Title = "Morphology - Scanning " + filepath;
+                            });
+
+                            // Example scene/look json
+                            // {
+                            //   ...
+                            //   "atoms": [
+                            //     ...
+                            //     {
+                            //       "id": "Girly Bob",
+                            //       "type": "Person",
+                            //       "storables": [
+                            //         ... 
+                            //         { 
+                            //           "id" : "geometry",
+                            //           "character": "Candy",
+                            //           "clothing": [ ],      // naked!
+                            //           "hair": [ ]           // bald!
+                            //           "morphs": [           // interesting bits!
+                            //             ...
+                            //             { "name": "Jaw Round", "value": "0.31231625" },
+                            //             { "name": "Jaw Width", "value": "0.0" },   <--- trim this one
+                            //             { "name": "Jaw Height", "value": "-0.36259387" },
+                            //             ...
+                            //           ]
+                            //         }
+                            //       ]
+                            //     } 
+                            //   ]
+                            // }
+                            //
+                            /*
+                            if (jsonObj.ContainsKey("atoms"))
+                            {
+                                foreach (dynamic atom in jsonObj["atoms"])
+                                {
+                                    if (atom["type"] == "Person")
+                                    {
+                                        foreach (dynamic storable in atom["storables"])
+                                        {
+                                            if (storable["id"] == "geometry")
+                                            {
+                                                foreach (dynamic morph in storable["morphs"])
+                                                {
+                                                    string name = morph["name"];
+                                                    if (!_morph_references.ContainsKey(name))
+                                                    {
+                                                        _morph_references[name] = new List<string>();
+                                                    }
+                                                    _morph_references[name].Add(filepath);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }*/
+                            // Instead of parsing the whole scene, cut out just the morphs list to speed up evaluation.
+                            string json = File.ReadAllText(filepath);
+                            int morphsPosition = json.IndexOf("\"morphs\"");
+                            if (morphsPosition > 0)
+                            {
+                                int morphListStart = json.IndexOf('[', morphsPosition);
+                                morphListJSON = json.Substring(morphListStart);
+
+                                // Find the next closing bracket that had some sort of white-space in front of it.
+                                // This avoids clipping the json array too early like in cases of brackets in names.
+                                // Thanks, "[Alter3go]". :p
+                                match = Regex.Match(morphListJSON, @"\s+]");
+                                morphListJSON = morphListJSON.Substring(0, match.Index + match.Length);
+
+                                dynamic original = Newtonsoft.Json.JsonConvert.DeserializeObject(morphListJSON);
+                                ListDictionary trimmed = new ListDictionary();  
+                                foreach (dynamic morph in original)
+                                {
+                                    string name = morph["name"];
+                                    string value = morph["value"];
+
+                                    if (!_morph_references.ContainsKey(name))
+                                    {
+                                        _morph_references[name] = new List<string>();
+                                    }
+                                    _morph_references[name].Add(filepath);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Could not load JSON from:\n\n" + filepath + "\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    ScanSavesFolder(sub);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not scan the selected folder.\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void OnOpenFolder(object sender, RoutedEventArgs e)
@@ -306,9 +498,21 @@ namespace Morphology
         {
             LoadMorphFolder();
         }
+        private void OnNewRegion(object sender, RoutedEventArgs e)
+        {
+            string regionName = NewRegionName.Text;
+            foreach (Region region in regions) {
+                if (region.Name == regionName)
+                {
+                    MessageBox.Show("A region with that name already exists. Please pick another name.", "Morphology - Region Name Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+            regions.Add(new Region(regionName));
+        }
         private void OnDeleteDSF(object sender, RoutedEventArgs e)
         {
-            List<string> dsfFiles = GetDSFFilePaths(Settings.LoadedSettings.Folder);
+            List<string> dsfFiles = GetDSFFilePaths(regions.MorphFolder);
 
             if (dsfFiles.Count > 0)
             {
@@ -344,7 +548,7 @@ namespace Morphology
         }
         private void OnDeleteAUTO(object sender, RoutedEventArgs e)
         {
-            List<string> morphFiles = GetAutoMorphFilePaths(Settings.LoadedSettings.Folder);
+            List<string> morphFiles = GetAutoMorphFilePaths(regions.MorphFolder);
 
             if (morphFiles.Count > 0)
             {
@@ -419,6 +623,42 @@ namespace Morphology
                 MessageBox.Show("No AUTO morphs where found in any region.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
+        }
+        private async void OnFindMorphReferences(object sender, RoutedEventArgs e)
+        {
+            regions.Status = "Scanning Saves Folder...";
+
+            _morph_references = new Dictionary<string, List<string>>();
+
+            // "E:/VAM/Saves/scene/Patreon/C&G Studio/Sex & Dance/Touchy-Booty-Shake Dance 1"
+            await Task.Run(() => ScanSavesFolder(Settings.LoadedSettings.Folder + "/Saves"));
+            
+            // reload morph folder to apply saves reference info to each morph
+            LoadMorphFolder();
+            UnusedMorphsPanel.Visibility = Visibility.Visible;
+            SingleUseMorphsPanel.Visibility = Visibility.Visible;
+
+        }
+        private void OnRemoveInactiveMorphs(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private void OnRemoveMorphArtifacts(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private void OnClickReferences(object sender, RoutedEventArgs e)
+        {
+            Hyperlink referencesLink = (Hyperlink)sender;
+            Morph morph = (Morph)referencesLink.DataContext;
+
+            string scenes = "Scenes/Looks using the " + morph.DisplayName + " morph:\n\n";
+            
+            foreach(string scene in morph.ReferenceList)
+            {
+                scenes += scene + "\n\n";
+            }
+            MessageBox.Show(scenes, "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         private void OnViewOptionChanged(object sender, PropertyChangedEventArgs args)
         {

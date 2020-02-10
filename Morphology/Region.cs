@@ -92,15 +92,10 @@ namespace Morphology
 
                 if (count == 0)
                 {
-                    return null;
+                    return _name;
                 }
 
-                if (count == 1)
-                {
-                    return "1 morph";
-                }
-
-                return count + " morphs";
+                return _name + " (" + count + ")";
             }
         }
         public Brush DisplayColor

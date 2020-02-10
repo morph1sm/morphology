@@ -169,7 +169,17 @@
     <Resource Include="ClassIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\loading1.jpg" />
+    <Resource Include="Icons\DecreaseDecimalsHL_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\NumericListBox_16x.png" />
+    <Resource Include="Icons\UserBuild_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\AddVariable_16x.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows.Media;
 
 namespace Morphology
@@ -17,9 +18,11 @@ public class Morph : INotifyPropertyChanged
         private readonly string _filepath;
         private readonly bool _is_pose;
         private readonly bool _is_standard;
+        private readonly List<string> _references;
         private readonly bool _known_as_bad;
         private readonly bool _was_auto_imported;
 
+        public event PropertyChangedEventHandler PropertyChanged;
         private Region _parent;
         private Brush _displayColor = Brushes.LightGray;
         private readonly List<string> _badMorphs = new List<string>(){
@@ -47,7 +50,7 @@ public class Morph : INotifyPropertyChanged
         {
 
         }
-        public Morph(string filepath)
+        public Morph(string filepath, Dictionary<string, List<string>> references)
         {
             string json = File.ReadAllText(filepath);
             dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
@@ -57,7 +60,7 @@ public class Morph : INotifyPropertyChanged
             _region = jsonObj["region"];
             _is_pose = jsonObj["isPoseControl"] ?? true;
             _filepath = filepath;
-
+            
             // distinction between standard and custom morphs not yet implemented
             // will add list of standard morphs later
             _is_standard = false;
@@ -68,9 +71,17 @@ public class Morph : INotifyPropertyChanged
             // imported via VAC and stored in AUTO subfolder
             _was_auto_imported = _filepath.Contains("\\AUTO\\");
 
-
-
+            _references = new List<string>();
+            if (references.ContainsKey(_name))
+            {
+                _references = references[_name];
+            }
+            
             ApplyColorScheme();
+        }
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         private void ApplyColorScheme()
         {
@@ -109,6 +120,27 @@ public class Morph : INotifyPropertyChanged
         {
             get { return _filepath; }
         }
+        public int ReferenceCount
+        {
+            get { return _references.Count; }
+        }
+        public string ReferenceInfo
+        {
+            get {
+                if (_references.Count == 0)
+                {
+                    return "";
+                }
+                else
+                {
+                    return String.Format("References: {0}", _references.Count);
+                }
+            }
+        }
+        public List<string> ReferenceList
+        {
+            get { return _references; }
+        }
         public bool IsAuto
         {
             get { return _was_auto_imported; }
@@ -131,7 +163,7 @@ public class Morph : INotifyPropertyChanged
             set
             {
                 _displayColor = value;
-                OnPropertyChanged("DisplayColor");
+                OnPropertyChanged();
             }
         }
         public Region Parent
@@ -140,16 +172,10 @@ public class Morph : INotifyPropertyChanged
             set
             {
                 _parent = value;
-                OnPropertyChanged("Parent");
+                OnPropertyChanged();
             }
         }
-        public event PropertyChangedEventHandler PropertyChanged;
         public override string ToString() => _id;
-        protected void OnPropertyChanged(string info)
-        {
-            var handler = PropertyChanged;
-            handler?.Invoke(this, new PropertyChangedEventArgs(info));
-        }
         internal void MoveToRegion(Region destination)
         {
             _parent.Morphs.Remove(this);

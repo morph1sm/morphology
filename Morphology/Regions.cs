@@ -1,31 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Morphology.Data;
 
 namespace Morphology
 {
-    public class Regions : ObservableCollection<Region>
+    public class Regions : ObservableCollection<Region>, INotifyPropertyChanged
     {
-        private readonly string _morph_folder;
+        private string _status;
         private readonly Settings _settings;
-        public Regions(string _folder, Settings settings)
+        private readonly Dictionary<string, List<string>> _morph_references;
+        new public event PropertyChangedEventHandler PropertyChanged;
+        public Regions(Settings settings, Dictionary<string, List<string>> morph_references)
         {
-            _morph_folder = _folder;
             _settings = settings;
+            _morph_references = morph_references;
+            _status = "Select your VAM Folder to start scanning.";
             ApplyVaMStandardRegions();
-
-            ScanFolder(_morph_folder);
+            
+            if (settings.Folder != null) { 
+                RunScan();
+            }
         }
-        public string Folder
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
-            get { return _morph_folder; }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        private async void RunScan()
+        {
+            Status = "Scanning Morph Folder...";
+            
+            await Task.Run(() => ScanMorphFolder(MorphFolder));
+            
+            Status = String.Format("Found {0} custom regions from {1} custom morphs.", TotalCustomRegions, TotalCustomMorphs);
         }
         public int TotalCustomRegions
         {
@@ -35,7 +51,20 @@ namespace Morphology
         {
             get { return this.Sum(region => region.Morphs.Count); }
         }
-        private void ApplyVaMStandardRegions() {    
+        public string MorphFolder
+        {
+            get { return _settings.Folder + "/Custom/Atom/Person/Morphs"; }
+        }
+        public string Status
+        {
+            get { return _status; }
+            set
+            {
+                _status = value;
+                OnPropertyChanged();
+            }
+        }
+        private void ApplyVaMStandardRegions() {
             Add(new Region("Morph/Anus", true));
             Add(new Region("Morph/Arms", true));
             Add(new Region("Morph/Back", true));
@@ -83,8 +112,7 @@ namespace Morphology
             Add(new Region("Pose/Head/Nose", true));
             Add(new Region("Pose/Head/Visemes", true));
         }
-            
-        internal void ScanFolder(string dir)
+        internal void ScanMorphFolder(string dir)
         {
             try
             {
@@ -93,10 +121,13 @@ namespace Morphology
                     foreach (string filepath in Directory.GetFiles(sub, "*.vmi"))
                     {
                         try {
-                            Morph morph = new Morph(filepath);
+                            Morph morph = new Morph(filepath, _morph_references);
 
-                            if (MatchesFilter(morph)) { 
-                                AddCustomMorph(morph);
+                            if (MatchesFilter(morph)) {
+                                App.Current.Dispatcher.Invoke((Action)delegate
+                                {
+                                    AddCustomMorph(morph);
+                                });
                             }
                         }
                         catch (Exception ex)
@@ -104,7 +135,7 @@ namespace Morphology
                             MessageBox.Show("Could not load morph metadata from:\n\n" + filepath + "\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
-                    ScanFolder(sub);
+                    ScanMorphFolder(sub);
                 }
             }
             catch (Exception ex)
@@ -112,15 +143,16 @@ namespace Morphology
                 MessageBox.Show("Could not scan the selected folder.\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        
         private bool MatchesFilter(Morph morph)
         {
             return
                 _settings.ShowAutoMorphs && morph.IsAuto ||
                 _settings.ShowBadMorphs && morph.IsBad ||
-                _settings.ShowCustomMorphs && !morph.IsStandard ||
                 _settings.ShowPoseMorphs && morph.IsPose ||
                 _settings.ShowShapeMorphs && !morph.IsPose ||
-                _settings.ShowStandardMorphs && morph.IsStandard;
+                _settings.ShowSingleUseMorphs && morph.ReferenceCount == 1 ||
+                _settings.ShowUnusedMorphs && morph.ReferenceCount == 0;
         }
         private void AddCustomMorph(Morph morph)
         {
@@ -137,8 +169,8 @@ namespace Morphology
 
             if (!morphAddedToExistingRegion)
             {
-                // this morph has a custom region that's not yet listed
-                // create anew region before adding this morph
+                // This morph has a custom region that's not yet listed.
+                // Create a new region before adding this morph.
                 Region region = new Region(morph.Region);
                 morph.Parent = region;
                 region.Morphs.Add(morph);

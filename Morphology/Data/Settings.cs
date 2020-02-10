@@ -29,13 +29,13 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
-        public bool ShowStandardMorphs
+        public bool ShowUnusedMorphs
         {
-            get => _showStandardMorphs;
+            get => _showUnusedMorphs;
             set
             {
-                var oldvalue = _showStandardMorphs;
-                _showStandardMorphs = value;
+                var oldvalue = _showUnusedMorphs;
+                _showUnusedMorphs = value;
                 if (value != oldvalue)
                 {
                     IsDirty = true;
@@ -43,13 +43,13 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
-        public bool ShowCustomMorphs
+        public bool ShowSingleUseMorphs
         {
-            get => _showCustomMorphs;
+            get => _showSingleUseMorphs;
             set
             {
-                var oldvalue = _showCustomMorphs;
-                _showCustomMorphs = value;
+                var oldvalue = _showSingleUseMorphs;
+                _showSingleUseMorphs = value;
                 if (value != oldvalue)
                 {
                     IsDirty = true;
@@ -129,8 +129,8 @@ namespace Morphology.Data
             }
         }
         private string _folder;
-        private bool _showStandardMorphs = true;
-        private bool _showCustomMorphs = true;
+        private bool _showUnusedMorphs = true;
+        private bool _showSingleUseMorphs = true;
         private bool _showShapeMorphs = true;
         private bool _showPoseMorphs = true;
         private bool _showAutoMorphs = true;
