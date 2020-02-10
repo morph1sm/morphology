@@ -1,6 +1,8 @@
 # Morphology
 A morph organizing tool for Virt-a-Mate
 
+![Morphology Screenshot](Screenshot.PNG)
+
 ## Installation
 - download the [lastest release](https://github.com/morph1sm/morphology/releases)
 - unzip into a folder somewhere
