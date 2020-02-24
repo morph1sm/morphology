@@ -65,6 +65,7 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 ### v0.3.5
 - rename regions
 - rename morphs
+- let user pick folder when scanning scenes/looks
 - quick fix for invalid `CheekBone  Width Outer` morph for legacy scenes
 - implement `Remove Inactive Morphs`
 - implement `Remove Morph Artifacts`
