@@ -30,14 +30,14 @@ namespace Morphology
         {
             if (!_standard)
             {
-                DisplayColor = Brushes.LightBlue;
+                _displayColor = Brushes.LightBlue;
             }
         }
         public Region(string name, Brush displaycolor)
         {
             _name = name;
             _standard = false;
-            DisplayColor = displaycolor;
+            _displayColor = displaycolor;
         }
 
         public Region(string name, bool standard)
@@ -51,7 +51,7 @@ namespace Morphology
         {
             _name = name;
             _standard = standard;
-            DisplayColor = displaycolor;
+            _displayColor = displaycolor;
             ApplyColorScheme();
         }
 
@@ -77,6 +77,11 @@ namespace Morphology
         {
             get { return _morphs; }
         }
+        public void AddMorph(Morph morph)
+        {
+            _morphs.Add(morph);
+            OnPropertyChanged("Info");
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         public override string ToString() => _name;
         protected void OnPropertyChanged(string info)
@@ -96,6 +101,7 @@ namespace Morphology
                 }
 
                 return _name + " (" + count + ")";
+
             }
         }
         public Brush DisplayColor

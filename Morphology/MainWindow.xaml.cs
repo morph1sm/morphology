@@ -32,7 +32,7 @@ namespace Morphology
         Point PP; // Mouse position for last PreviewMouseDown event
         private SettingHandler<Settings> _settings;
         private Window _dragdropWindow = null;
-        private Dictionary<string, List<string>> _morph_references = new Dictionary<string, List<string>>();
+        private Dictionary<string, List<string>> _morph_references;
 
         public SettingHandler<Settings> Settings
         {
@@ -157,10 +157,14 @@ namespace Morphology
 
             ListBoxItem Item = (ListBoxItem)VisualTree.GetParent(e.OriginalSource, typeof(ListBoxItem));
 
-            if (Item == null) return;
-            if (!Item.IsSelected || !listBox.CaptureMouse()) return;
-            e.Handled = true;
-            listBox.Tag = Item;
+            if (Item != null)
+            {
+                if (Item.IsSelected && listBox.CaptureMouse())
+                {
+                    //e.Handled = true;
+                    listBox.Tag = Item;
+                }
+            }
         }
 
         private void ListBox_PreviewMouseUp(object sender, MouseButtonEventArgs e)
@@ -174,52 +178,50 @@ namespace Morphology
             }
 
             ListBox listBox = (ListBox)sender;
-
             ListBoxItem item = (ListBoxItem)listBox.Tag;
 
             listBox.Tag = null;
 
-            if (item == null) return;
-
-            if (!listBox.IsMouseCaptured) return; //Skip if the Mouse is not Capured anymore
-
-            e.Handled = true;
-
-            listBox.ReleaseMouseCapture(); // Release Mouse Capture
-
-            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            if (item != null && listBox.IsMouseCaptured)
             {
-                item.IsSelected = !item.IsSelected; 
-            }
-            else
-            {
-                listBox.SelectedItems.Clear();
-                item.IsSelected = true;
-            }
+                //e.Handled = true;
 
-            if (!item.IsKeyboardFocused) item.Focus();
+                listBox.ReleaseMouseCapture(); // Release Mouse Capture
+
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    item.IsSelected = !item.IsSelected;
+                }
+                else
+                {
+                    listBox.SelectedItems.Clear();
+                    item.IsSelected = true;
+                }
+
+                if (!item.IsKeyboardFocused) item.Focus();
+            }
         }
 
         private void ListBox_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             ListBox listView = (ListBox)sender;
 
-            if (!listView.IsMouseCaptured)
-
-                return;
-            e.Handled = true;
-            Point P = e.GetPosition(listView);
-
-            int Limit = 4;
-
-            if (P.X - Limit > PP.X ||
-                P.X + Limit < PP.X ||
-                P.Y - Limit > PP.Y ||
-                P.Y + Limit < PP.Y)
+            if (listView.IsMouseCaptured)
             {
-                listView.ReleaseMouseCapture();
-                // create the visual feedback drag and drop item
-                StartDrag(listView);
+                e.Handled = true;
+                Point P = e.GetPosition(listView);
+
+                int Limit = 4;
+
+                if (P.X - Limit > PP.X ||
+                    P.X + Limit < PP.X ||
+                    P.Y - Limit > PP.Y ||
+                    P.Y + Limit < PP.Y)
+                {
+                    listView.ReleaseMouseCapture();
+                    // create the visual feedback drag and drop item
+                    StartDrag(listView);
+                }
             }
         }
 
@@ -229,24 +231,51 @@ namespace Morphology
             ListBox listView = (ListBox)sender;
             listView.Tag = null;
         }
-
         private void ListBox_GiveFeedback(object sender, GiveFeedbackEventArgs e)
         {
-            // update the position of the visual feedback item
-            Win32Point w32Mouse = new Win32Point();
-            GetCursorPos(ref w32Mouse);
-
-            int mousecursorOffsetX = 20; //The Offset from the Mousecursor X Position
-            int mousecursorOffsetY = 20; //The Offsetfrom the Mousecursor Y Position
-
             if (_dragdropWindow != null)
             {
+
+                // update the position of the visual feedback item
+                Win32Point w32Mouse = new Win32Point();
+                GetCursorPos(ref w32Mouse);
+
+                int mousecursorOffsetX = 20; //The Offset from the Mousecursor X Position
+                int mousecursorOffsetY = 20; //The Offsetfrom the Mousecursor Y Position
+
                 _dragdropWindow.Left = w32Mouse.X + mousecursorOffsetX;
                 _dragdropWindow.Top = w32Mouse.Y + mousecursorOffsetY;
             }
         }
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs args)
+        {
+            ListBox listView = (ListBox)sender;
+            Region region = (Region)regionsListBox.SelectedItem;
+            int total = listView.Items.Count;
+            int selected = listView.SelectedItems.Count;
 
+            string s = total == 1 ? "" : "s";
+            string selectedInfo = "";
 
+            if (selected > 0)
+            {
+                groupMorphActions.Visibility = Visibility.Visible;
+                selectedInfo = String.Format(", {0}/{1} selected", selected, total);
+            }
+            else
+            {
+                groupMorphActions.Visibility = Visibility.Collapsed;
+            }
+
+            MorphInfo.Text = total + " Morph" + s + " in Region \"" + region.Name +"\""+ selectedInfo;
+        }
+        private void ListBoxItem_MouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            ListBox l = (ListBox)sender;
+            Morph morph = (Morph)l.SelectedItem;
+ 
+            MessageBox.Show(morph.Details, "Morp Detail");//, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         private void Region_DragEnter(object sender, DragEventArgs args)
         {
         }
@@ -637,7 +666,8 @@ namespace Morphology
             LoadMorphFolder();
             UnusedMorphsPanel.Visibility = Visibility.Visible;
             SingleUseMorphsPanel.Visibility = Visibility.Visible;
-
+            RemoveInactiveMorphs.Visibility = Visibility.Visible;
+            RemoveMorphArtifacts.Visibility = Visibility.Visible;
         }
         private void OnRemoveInactiveMorphs(object sender, RoutedEventArgs e)
         {
@@ -647,18 +677,51 @@ namespace Morphology
         {
             MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        private void OnClickReferences(object sender, RoutedEventArgs e)
+        private void OnRenameMorph(object sender, RoutedEventArgs e)
         {
-            Hyperlink referencesLink = (Hyperlink)sender;
-            Morph morph = (Morph)referencesLink.DataContext;
-
-            string scenes = "Scenes/Looks using the " + morph.DisplayName + " morph:\n\n";
-            
-            foreach(string scene in morph.ReferenceList)
+            MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private async void OnTrashMorph(object sender, RoutedEventArgs e)
+        {
+            List<string> paths = new List<string>();
+            foreach (Morph morph in MorphList.SelectedItems)
             {
-                scenes += scene + "\n\n";
+                paths.Add(morph.Filepath);
             }
-            MessageBox.Show(scenes, "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            string vamFolder = Settings.LoadedSettings.Folder;
+            string trashFolder = Path.Combine(vamFolder, "Custom\\Atom\\Person\\MorphsTrash");
+
+            await Task.Run(() => MoveMorphsToFolder(paths, trashFolder));
+
+            LoadMorphFolder();
+
+            //MessageBox.Show("Moved " + paths.Count + " morphs to "+trashFolder, "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+        }
+        private void MoveMorphsToFolder(List<string> selection, string folder) {
+            string vamFolder = Settings.LoadedSettings.Folder;
+            string morphFolder = Path.Combine(vamFolder, "Custom\\Atom\\Person\\Morphs");
+            int subpathIndex = morphFolder.Length+1;            
+
+            foreach (string source in selection)
+            {
+                if (source.Replace('/', '\\').StartsWith(morphFolder))
+                {
+                    string subpath = source.Substring(subpathIndex);
+                    string destination = Path.Combine(folder, subpath);
+                    string destinationFolder = Path.GetDirectoryName(destination);
+
+                    if (!Directory.Exists(destinationFolder))
+                    {
+                        Directory.CreateDirectory(destinationFolder);
+                    }
+
+                    File.Move(source, destination);
+                    Console.WriteLine("Moved " + source + " to " + destination);
+                }
+            }
+
         }
         private void OnViewOptionChanged(object sender, PropertyChangedEventArgs args)
         {

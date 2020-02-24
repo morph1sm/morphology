@@ -14,12 +14,12 @@ using Morphology.Data;
 
 namespace Morphology
 {
-    public class Regions : ObservableCollection<Region>, INotifyPropertyChanged
+    public class Regions : ObservableCollection<Region>//, INotifyPropertyChanged
     {
         private string _status;
         private readonly Settings _settings;
         private readonly Dictionary<string, List<string>> _morph_references;
-        new public event PropertyChangedEventHandler PropertyChanged;
+        //new public event PropertyChangedEventHandler PropertyChanged;
         public Regions(Settings settings, Dictionary<string, List<string>> morph_references)
         {
             _settings = settings;
@@ -31,10 +31,10 @@ namespace Morphology
                 RunScan();
             }
         }
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        /*protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        }*/
         private async void RunScan()
         {
             Status = "Scanning Morph Folder...";
@@ -61,7 +61,7 @@ namespace Morphology
             set
             {
                 _status = value;
-                OnPropertyChanged();
+                //OnPropertyChanged();
             }
         }
         private void ApplyVaMStandardRegions() {
@@ -162,7 +162,7 @@ namespace Morphology
                 if (region.Name == morph.Region)
                 {
                     morph.Parent = region;
-                    region.Morphs.Add(morph);
+                    region.AddMorph(morph);
                     morphAddedToExistingRegion = true;
                 }
             }
@@ -173,7 +173,7 @@ namespace Morphology
                 // Create a new region before adding this morph.
                 Region region = new Region(morph.Region);
                 morph.Parent = region;
-                region.Morphs.Add(morph);
+                region.AddMorph(morph);
                 Add(region);
             }
         }

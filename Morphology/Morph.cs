@@ -10,7 +10,7 @@ using System.Windows.Media;
 
 namespace Morphology
 {
-public class Morph : INotifyPropertyChanged
+    public class Morph : INotifyPropertyChanged
     {
         private readonly string _id;
         private readonly string _name;
@@ -60,7 +60,7 @@ public class Morph : INotifyPropertyChanged
             _region = jsonObj["region"];
             _is_pose = jsonObj["isPoseControl"] ?? true;
             _filepath = filepath;
-            
+
             // distinction between standard and custom morphs not yet implemented
             // will add list of standard morphs later
             _is_standard = false;
@@ -71,12 +71,16 @@ public class Morph : INotifyPropertyChanged
             // imported via VAC and stored in AUTO subfolder
             _was_auto_imported = _filepath.Contains("\\AUTO\\");
 
-            _references = new List<string>();
-            if (references.ContainsKey(_name))
+            if (references != null)
             {
-                _references = references[_name];
+                _references = new List<string>();
+
+                if (references.ContainsKey(_name))
+                {
+                    _references = references[_name];
+                }
             }
-            
+
             ApplyColorScheme();
         }
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -122,25 +126,55 @@ public class Morph : INotifyPropertyChanged
         }
         public int ReferenceCount
         {
-            get { return _references.Count; }
+            get { return _references is null ? -1: _references.Count; }
         }
-        public string ReferenceInfo
+        public string Info
         {
             get {
-                if (_references.Count == 0)
+                int count = ReferenceCount;
+                if (count > 0)
                 {
-                    return "";
+                    return String.Format("{0} ({1})", _name, count);
                 }
                 else
                 {
-                    return String.Format("References: {0}", _references.Count);
+                    return _name;
                 }
             }
         }
-        public List<string> ReferenceList
+        public string Details
+        {
+            get { 
+                string details = "";
+
+                details += "ID: " + ID + "\n";
+                details += "Name: " + DisplayName + "\n\n";
+
+                details += "Is Standard: " + IsStandard + "(built-in morph, i.e. not based on Custom folder)\n";
+                details += "Is Pose: " + IsPose + "(moves body parts via bones instead of shaping them)\n";
+                details += "Is Auto: " + IsAuto + " (was imported into AUTO folder by a VAC)\n";
+                details += "Is Bad: " + IsPose + " (known to affect shapes outside of its own region)\n";
+                
+                details += "\nLocation: " + Filepath + "\n";
+
+
+                if (_references != null)
+                {
+                    details += "\nScenes: " + ReferenceCount + "\n\n";
+
+                    foreach (string scene in _references)
+                    {
+                        details += scene + "\n";
+                    }
+                }
+
+                return details;
+            }
+        }
+        /*public List<string> ReferenceList
         {
             get { return _references; }
-        }
+        }*/
         public bool IsAuto
         {
             get { return _was_auto_imported; }
