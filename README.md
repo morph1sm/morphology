@@ -4,9 +4,15 @@ An organizing tool for custom morphs in Virt-a-Mate
 ![Morphology Screenshot](Screenshot.PNG)
 
 ## Installation
-- download the [installer for the latest release](https://github.com/morph1sm/morphology/releases)
+- download the [installer package](https://github.com/morph1sm/morphology/releases/download/0.3/Morphology.v3.0.zip)
 - unzip installer, e.g. in your Downloads folder
 - run `setup.exe` to install the Morphology app (if you have an older version, please first uninstall it via Windows Settings -> Apps )
+###Standalone version
+If you prefer not to use the installer, please:
+- ensure that you have .Net Framework 4.8 installed
+- download the [standalone package](https://github.com/morph1sm/morphology/releases/download/0.3/Morphology.v3.0.standalone.zip)
+- extract it to a folder of your choice
+- run Morphology.exe
 
 ## Usage
 - tell Morphology where your VAM lives via the `Select VAM Folder` button
