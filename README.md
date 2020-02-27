@@ -72,6 +72,9 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 - rename regions
 - rename morphs
 - let user pick folder when scanning scenes/looks
+- set `isPoseControl` flag when morph is moved to built-in pose region
+- clear `isPoseControl` flag when morph is moved to built-in morph region
+- rename "Region" to "Category" to match VAM terminology
 - quick fix for invalid `CheekBone  Width Outer` morph for legacy scenes
 - implement `Remove Inactive Morphs`
 - implement `Remove Morph Artifacts`
@@ -79,6 +82,8 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 ### v0.4
 - install DSF and pre-sort by region so the new morphs are imported into your region of choice
 - importing some DUF to VAP
+- user-defined blacklist
+- identify bad/blacklisted morphs by checksum (of .vmb) not name
 
 ### v0.5
 - add license info to VMI (VaM morph metadata)
