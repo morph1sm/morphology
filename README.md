@@ -68,10 +68,11 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 *Not yet implemented*: Same as above, but for whatever reason the morph is stored with a tiny value, e.g. `0.000000001`. In essence it is an unused morph, but technically it is used because the value is not 0. This feature will remove these morph artifacts. You can select the pruning sensitivity by entering you own treshold value.
 
 ## Roadmap
-### v0.3.5
+### v0.3.1
 - rename regions
 - rename morphs
 - let user pick folder when scanning scenes/looks
+- add a filter text box to search morphs by name
 - set `isPoseControl` flag when morph is moved to built-in pose region
 - clear `isPoseControl` flag when morph is moved to built-in morph region
 - rename "Region" to "Category" to match VAM terminology
