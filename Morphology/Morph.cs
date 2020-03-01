@@ -153,7 +153,7 @@ namespace Morphology
                 details += "Is Standard: " + IsStandard + "(built-in morph, i.e. not based on Custom folder)\n";
                 details += "Is Pose: " + IsPose + "(moves body parts via bones instead of shaping them)\n";
                 details += "Is Auto: " + IsAuto + " (was imported into AUTO folder by a VAC)\n";
-                details += "Is Bad: " + IsPose + " (known to affect shapes outside of its own region)\n";
+                details += "Is Bad: " + IsPose + " (known to affect shapes outside of its own category)\n";
                 
                 details += "\nLocation: " + Filepath + "\n";
 
@@ -226,10 +226,8 @@ namespace Morphology
                 string json = File.ReadAllText(_filepath);
                 dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
                 jsonObj["region"] = Parent.Name;
+                jsonObj["isPoseControl"] = Parent.Name.ToLower().Contains("pose");
                 string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-
-                Console.WriteLine("\n\n\n\nMorph " + _id + " was moved from region " + _region + " to region "+ _parent.Name);
-                Console.WriteLine("Writing file: "+_filepath);
 
                 File.WriteAllText(_filepath, output);
             }

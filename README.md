@@ -61,6 +61,9 @@ Fortunately, VaM copies morphs imported from scenes to a special subfolder calle
 ### Find Morph References
 Scans your **Saves** folder for scenes and looks counts how many scenes or looks are using each custom morph. After the scan completes, you will see a count next to the morph name in the list on the right.
 
+### Remove Missing Morphs
+*Not yet implemented*: Will prune morphs from selected scenes and looks if they are not part of your custom morph library. This fixes error messages about bad morphs, e.g. black-listed known bad morphs or broken legacy morphs like `CheekBone  Width Outer`. Can also be used to remove paid morphs that the look creator didn't include and you don't plan on purchasing.
+
 ### Remove Inactive Morphs
 *Not yet implemented*: Will prune morphs from all scenes and looks if their value is 0.0, i.e. if that morph is unused. This usually happens when a morph was tried out, but then zeroed out by the scene/look creator. This will make your scenes smaller and also stop counting it as a reference.
 
@@ -68,29 +71,23 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 *Not yet implemented*: Same as above, but for whatever reason the morph is stored with a tiny value, e.g. `0.000000001`. In essence it is an unused morph, but technically it is used because the value is not 0. This feature will remove these morph artifacts. You can select the pruning sensitivity by entering you own treshold value.
 
 ## Roadmap
-### v0.3.1
-- rename regions
-- rename morphs
-- let user pick folder when scanning scenes/looks
-- add a filter text box to search morphs by name
-- set `isPoseControl` flag when morph is moved to built-in pose region
-- clear `isPoseControl` flag when morph is moved to built-in morph region
-- rename "Region" to "Category" to match VAM terminology
-- quick fix for invalid `CheekBone  Width Outer` morph for legacy scenes
+### v0.3.5
+- user-defined blacklist
+- identify bad/blacklisted morphs by checksum (of .vmb) not name
+- (research duplicate detection via checksum)
+- implement `Remove Missing Morphs`
 - implement `Remove Inactive Morphs`
 - implement `Remove Morph Artifacts`
 
 ### v0.4
 - install DSF and pre-sort by region so the new morphs are imported into your region of choice
 - importing some DUF to VAP
-- user-defined blacklist
-- identify bad/blacklisted morphs by checksum (of .vmb) not name
 
-### v0.5
+### v0.5 (pending new VAM packager features)
 - add license info to VMI (VaM morph metadata)
 - mark sharable vs copyrighted morphs
 - remove copyrighted morph refrences from scenes
 
-### v0.6
+### v0.6 (pending discovery)
 - integrate with DAZ product lists to find original metadata for installed morphs
 - import and correct morph regions based on DAZ product lists

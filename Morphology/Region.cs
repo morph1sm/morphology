@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Collections;
 using System.Windows.Media;
+using System.Runtime.CompilerServices;
 
 namespace Morphology
 {
@@ -13,12 +14,21 @@ namespace Morphology
     {
         private string _name;
         // Flags VaM's built-in category (region) names
+        private readonly bool _root;
         private readonly bool _standard;
         private readonly Morphs _morphs = new Morphs();
+        public event PropertyChangedEventHandler PropertyChanged;
 
         //Default Color for Standard Region
         private Brush _displayColor = Brushes.LightGray;
 
+        public Region()
+        {
+            _name = "[All Categories]";
+            _root = true;
+            _standard = true;
+            ApplyColorScheme();
+        }
         public Region(string name)
         {
             _name = name;
@@ -54,7 +64,10 @@ namespace Morphology
             _displayColor = displaycolor;
             ApplyColorScheme();
         }
-
+        public bool IsRoot
+        {
+            get { return _root; }
+        }
         public bool IsStandard
         {
             get { return _standard; }
@@ -64,13 +77,8 @@ namespace Morphology
             get { return _name; }
             set
             {
-                if (_standard)
-                {
-
-                }
-
                 _name = value;
-                OnPropertyChanged("Name");
+                OnPropertyChanged();
             }
         }
         public Morphs Morphs
@@ -81,13 +89,12 @@ namespace Morphology
         {
             _morphs.Add(morph);
             OnPropertyChanged("Info");
+            OnPropertyChanged("Morphs");
         }
-        public event PropertyChangedEventHandler PropertyChanged;
         public override string ToString() => _name;
-        protected void OnPropertyChanged(string info)
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
-            var handler = PropertyChanged;
-            handler?.Invoke(this, new PropertyChangedEventArgs(info));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         public string Info
         {
@@ -110,7 +117,7 @@ namespace Morphology
             set
             {
                 _displayColor = value; 
-                OnPropertyChanged("DisplayColor");
+                OnPropertyChanged();
             }
         }
         internal void TransferMorphs(List<Morph> selectedItems)
@@ -120,6 +127,8 @@ namespace Morphology
                 morph.MoveToRegion(this);
                 morph.Save();
             }
+            OnPropertyChanged("Info");
+            OnPropertyChanged("Morphs");
         }
     }
 }

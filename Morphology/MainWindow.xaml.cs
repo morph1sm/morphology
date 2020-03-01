@@ -255,6 +255,7 @@ namespace Morphology
             int selected = listView.SelectedItems.Count;
 
             string s = total == 1 ? "" : "s";
+            string regionInfo = "";
             string selectedInfo = "";
 
             if (selected > 0)
@@ -267,7 +268,12 @@ namespace Morphology
                 groupMorphActions.Visibility = Visibility.Collapsed;
             }
 
-            MorphInfo.Text = total + " Morph" + s + " in Region \"" + region.Name +"\""+ selectedInfo;
+            if (!region.IsRoot)
+            {
+                regionInfo = " in category \"" + region.Name + "\"";
+            }
+            
+            MorphInfo.Text = total + " custom morph" + s + regionInfo + selectedInfo;
         }
         private void ListBoxItem_MouseDoubleClick(object sender, RoutedEventArgs e)
         {
@@ -275,6 +281,25 @@ namespace Morphology
             Morph morph = (Morph)l.SelectedItem;
  
             MessageBox.Show(morph.Details, "Morp Detail");//, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private void RegionListBox_SelectionChanged(object sender, SelectionChangedEventArgs args)
+        {
+            ListBox list = (ListBox)sender;
+            Region region = (Region)list.SelectedItem;
+            
+            if (region.IsStandard)
+            {
+                RenameRegionPanel.Visibility = Visibility.Collapsed;
+                RegionName.Text = "";
+            }
+            else
+            {
+                RenameRegionPanel.Visibility = Visibility.Visible;
+                RegionName.Text = region.Name;
+            }
+
+            MorphList.SelectAll();
+            MorphList.SelectedItems.Clear();
         }
         private void Region_DragEnter(object sender, DragEventArgs args)
         {
@@ -313,8 +338,6 @@ namespace Morphology
                         var match = Regex.Match("","");
                         try
                         {
-                            Console.WriteLine("Scanning save {0}", filepath);
-
                             App.Current.Dispatcher.Invoke((Action)delegate
                             {
                                 this.Title = "Morphology - Scanning " + filepath;
@@ -533,11 +556,41 @@ namespace Morphology
             foreach (Region region in regions) {
                 if (region.Name == regionName)
                 {
-                    MessageBox.Show("A region with that name already exists. Please pick another name.", "Morphology - Region Name Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("A category with that name already exists. Please pick another name.", "Morphology - Region Name Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
             regions.Add(new Region(regionName));
+        }
+        private async void OnRenameRegion(object sender, RoutedEventArgs e)
+        {
+            string regionName = RegionName.Text;
+            Region selected = (Region)regionsListBox.SelectedItem;
+
+            foreach (Region region in regions)
+            {
+                if (region.Name == regionName)
+                {
+                    MessageBox.Show("A category with that name already exists. Please pick another name.", "Morphology - Region Name Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+
+            await Task.Run(() => RenameRegion(selected, regionName));
+            LoadMorphFolder();
+        }
+        private void RenameRegion(Region region, string name) 
+        {
+            region.Name = name;
+            // Save all morphs in region with the new region name
+            foreach (Morph morph in region.Morphs)
+            {
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    this.Title = "Morphology - Saving " + morph.Filepath;
+                });
+                morph.Save();
+            }
         }
         private void OnDeleteDSF(object sender, RoutedEventArgs e)
         {
@@ -626,7 +679,7 @@ namespace Morphology
 
             if (autoMorphs.Count > 0)
             {
-                if (MessageBox.Show("Move " + autoMorphs.Count + " AUTO morphs to the AUTO region?", "Morphology", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                if (MessageBox.Show("Move " + autoMorphs.Count + " AUTO morphs to the AUTO category?", "Morphology", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     Region auto = regions.FirstOrDefault(r => r.Name == "AUTO");
 
@@ -649,26 +702,33 @@ namespace Morphology
             }
             else
             {
-                MessageBox.Show("No AUTO morphs where found in any region.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("No AUTO morphs where found in any category.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
         }
         private async void OnFindMorphReferences(object sender, RoutedEventArgs e)
         {
-            regions.Status = "Scanning Saves Folder...";
 
-            _morph_references = new Dictionary<string, List<string>>();
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dialog.SelectedPath = Settings.LoadedSettings.SavesFolder ?? Path.Combine(Settings.LoadedSettings.Folder, "Saves");
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    Settings.LoadedSettings.SavesFolder = dialog.SelectedPath;
 
-            // "E:/VAM/Saves/scene/Patreon/C&G Studio/Sex & Dance/Touchy-Booty-Shake Dance 1"
-            await Task.Run(() => ScanSavesFolder(Settings.LoadedSettings.Folder + "/Saves"));
-            
-            // reload morph folder to apply saves reference info to each morph
-            LoadMorphFolder();
-            UnusedMorphsPanel.Visibility = Visibility.Visible;
-            SingleUseMorphsPanel.Visibility = Visibility.Visible;
-            RemoveInactiveMorphs.Visibility = Visibility.Visible;
-            RemoveMorphArtifacts.Visibility = Visibility.Visible;
-        }
+                    _morph_references = new Dictionary<string, List<string>>();
+
+                    await Task.Run(() => ScanSavesFolder(dialog.SelectedPath));
+
+                    // reload morph folder to apply saves reference info to each morph
+                    LoadMorphFolder();
+                    GroupSaveActions.Visibility = Visibility.Visible;
+                    GroupMorphReferences.Visibility = Visibility.Visible;
+                }
+            }
+
+        }         
         private void OnRemoveInactiveMorphs(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -677,9 +737,9 @@ namespace Morphology
         {
             MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        private void OnRenameMorph(object sender, RoutedEventArgs e)
+        private void OnFilterMorphsByName(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Sorry, this isn't implemented yet.", "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
+            LoadMorphFolder();
         }
         private async void OnTrashMorph(object sender, RoutedEventArgs e)
         {
@@ -695,9 +755,6 @@ namespace Morphology
             await Task.Run(() => MoveMorphsToFolder(paths, trashFolder));
 
             LoadMorphFolder();
-
-            //MessageBox.Show("Moved " + paths.Count + " morphs to "+trashFolder, "Morphology", MessageBoxButton.OK, MessageBoxImage.Information);
-            
         }
         private void MoveMorphsToFolder(List<string> selection, string folder) {
             string vamFolder = Settings.LoadedSettings.Folder;
@@ -718,14 +775,12 @@ namespace Morphology
                     }
 
                     File.Move(source, destination);
-                    Console.WriteLine("Moved " + source + " to " + destination);
                 }
             }
 
         }
         private void OnViewOptionChanged(object sender, PropertyChangedEventArgs args)
         {
-            Console.WriteLine("Property " + args.PropertyName + " changed");
             if (args.PropertyName.StartsWith("Show"))
             {
                 LoadMorphFolder();

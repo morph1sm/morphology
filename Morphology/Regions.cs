@@ -5,43 +5,43 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using Morphology.Data;
 
 namespace Morphology
 {
-    public class Regions : ObservableCollection<Region>//, INotifyPropertyChanged
+    public class Regions : ObservableCollection<Region>, INotifyPropertyChanged
     {
         private string _status;
+        private Region _root_region = new Region();
         private readonly Settings _settings;
         private readonly Dictionary<string, List<string>> _morph_references;
-        //new public event PropertyChangedEventHandler PropertyChanged;
+        new public event PropertyChangedEventHandler PropertyChanged;
         public Regions(Settings settings, Dictionary<string, List<string>> morph_references)
         {
             _settings = settings;
             _morph_references = morph_references;
             _status = "Select your VAM Folder to start scanning.";
+            // add the root Region (displayed as [All Regions])
+            Add(_root_region);
             ApplyVaMStandardRegions();
             
             if (settings.Folder != null) { 
                 RunScan();
             }
         }
-        /*protected void OnPropertyChanged([CallerMemberName] string name = null)
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }*/
+        }
         private async void RunScan()
         {
             Status = "Scanning Morph Folder...";
             
             await Task.Run(() => ScanMorphFolder(MorphFolder));
             
-            Status = String.Format("Found {0} custom regions from {1} custom morphs.", TotalCustomRegions, TotalCustomMorphs);
+            Status = String.Format("Found {0} categories in {1} custom morphs.", TotalCustomRegions, TotalCustomMorphs);
         }
         public int TotalCustomRegions
         {
@@ -49,7 +49,7 @@ namespace Morphology
         }
         public int TotalCustomMorphs
         {
-            get { return this.Sum(region => region.Morphs.Count); }
+            get { return _root_region.Morphs.Count; }
         }
         public string MorphFolder
         {
@@ -61,7 +61,7 @@ namespace Morphology
             set
             {
                 _status = value;
-                //OnPropertyChanged();
+                OnPropertyChanged();
             }
         }
         private void ApplyVaMStandardRegions() {
@@ -146,13 +146,18 @@ namespace Morphology
         
         private bool MatchesFilter(Morph morph)
         {
-            return
-                _settings.ShowAutoMorphs && morph.IsAuto ||
+            bool matchesType = _settings.ShowAutoMorphs && morph.IsAuto ||
                 _settings.ShowBadMorphs && morph.IsBad ||
                 _settings.ShowPoseMorphs && morph.IsPose ||
-                _settings.ShowShapeMorphs && !morph.IsPose ||
+                _settings.ShowShapeMorphs && !morph.IsPose;
+            
+            bool matchesReference = _settings.ShowUsedMorphs && morph.ReferenceCount > 1 ||
                 _settings.ShowSingleUseMorphs && morph.ReferenceCount == 1 ||
                 _settings.ShowUnusedMorphs && morph.ReferenceCount == 0;
+
+            bool matchesName = _settings.MorphNameFilter is null || _settings.MorphNameFilter.Length == 0 || morph.DisplayName.ToLower().Contains(_settings.MorphNameFilter);
+
+            return matchesName && (_morph_references is null ? matchesType : matchesReference && matchesType);
         }
         private void AddCustomMorph(Morph morph)
         {
@@ -176,6 +181,9 @@ namespace Morphology
                 region.AddMorph(morph);
                 Add(region);
             }
+
+            // Also add every morph the root region.
+            _root_region.AddMorph(morph);
         }
         internal List<Morph> GetAutoMorphs()
         {

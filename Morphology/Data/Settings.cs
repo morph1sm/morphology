@@ -29,6 +29,34 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
+        public string SavesFolder
+        {
+            get => _saves_folder;
+            set
+            {
+                var oldvalue = _saves_folder;
+                _saves_folder = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public string MorphNameFilter
+        {
+            get => _morph_name_filter;
+            set
+            {
+                var oldvalue = _morph_name_filter;
+                _morph_name_filter = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
         public bool ShowUnusedMorphs
         {
             get => _showUnusedMorphs;
@@ -36,6 +64,20 @@ namespace Morphology.Data
             {
                 var oldvalue = _showUnusedMorphs;
                 _showUnusedMorphs = value;
+                if (value != oldvalue)
+                {
+                    IsDirty = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public bool ShowUsedMorphs
+        {
+            get => _showUsedMorphs;
+            set
+            {
+                var oldvalue = _showUsedMorphs;
+                _showUsedMorphs = value;
                 if (value != oldvalue)
                 {
                     IsDirty = true;
@@ -57,6 +99,7 @@ namespace Morphology.Data
                 OnPropertyChanged();
             }
         }
+        
         public bool ShowShapeMorphs
         {
             get => _showShapeMorphs;
@@ -129,6 +172,9 @@ namespace Morphology.Data
             }
         }
         private string _folder;
+        private string _saves_folder;
+        private string _morph_name_filter;
+        private bool _showUsedMorphs = true;
         private bool _showUnusedMorphs = true;
         private bool _showSingleUseMorphs = true;
         private bool _showShapeMorphs = true;

@@ -8,11 +8,12 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:data="clr-namespace:Morphology.Data"
         mc:Ignorable="d"
-        Title="Morphology" Height="800" Width="1200" Name="_mainWindow">
+        Title="Morphology" Height="800" Width="1600" Name="_mainWindow">
 
     <Window.Resources>
         <CollectionViewSource x:Key="sortedRegions" Source="{Binding}">
             <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="IsRoot" Direction="Descending"/>
                 <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
@@ -25,7 +26,7 @@
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home" KeyTip="H" >
-                <RibbonGroup x:Name="groupMorphFolder" Header="Morph Folder">
+                <RibbonGroup x:Name="GroupMorphFolder" Header="VAM Folder">
                     <RibbonButton 
                         x:Name="OpenFolder" 
                         Label="Select VAM Folder" 
@@ -36,30 +37,52 @@
                         Click="OnRefresh"
                         Label="Rescan Morph Folder" 
                         SmallImageSource="Icons/Refresh_16x.png"/>
-                </RibbonGroup>
-                <RibbonGroup x:Name="groupNewRegion" Header="Add New Region">
-                    <RibbonTextBox x:Name="NewRegionName" />
                     <RibbonButton 
-                        x:Name="NewRegionButton"
-                        Click="OnNewRegion"
-                        Label="Add Region" 
-                        SmallImageSource="Icons/AddVariable_16x.png"/>
+                        x:Name="FindMorphReferencesButton"
+                        Click="OnFindMorphReferences"
+                        Label="Find Morph References" 
+                        SmallImageSource="Icons/UserBuild_16x.png"/>
                 </RibbonGroup>
-                <RibbonGroup x:Name="rbnGr2" Header="View Options">
+                <RibbonGroup x:Name="GroupRegion" Header="Category">
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <RibbonTextBox x:Name="NewRegionName" TextBoxWidth="200" />
+                        <RibbonButton 
+                            x:Name="NewRegionButton"
+                            Click="OnNewRegion"
+                            Label="Add"
+                        />
+                    </StackPanel>
+                    <StackPanel x:Name="RenameRegionPanel" Orientation="Horizontal" FlowDirection="LeftToRight" Visibility="Collapsed">
+                        <RibbonTextBox 
+                            x:Name="RegionName"
+                            TextBoxWidth="200"
+                        />
+                        <RibbonButton 
+                            x:Name="RenameRegionButton"
+                            Click="OnRenameRegion"
+                            Label="Rename"
+                        />
+                    </StackPanel>
+                </RibbonGroup>
+                <RibbonGroup x:Name="GroupMorphReferences" Header="Morph References" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <CheckBox 
+                            DataContext="this" 
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowUsedMorphs,Mode=TwoWay}"/>
+                        <Label>Morphs in Use</Label>
+                    </StackPanel>
+
                     <StackPanel 
-                        Name="UnusedMorphsPanel"
-                        Visibility="Collapsed"
-                        Orientation="Horizontal" 
+                        Orientation="Horizontal"
                         FlowDirection="LeftToRight">
                         <CheckBox 
                             DataContext="this" 
                             VerticalAlignment="Center"
                             IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowUnusedMorphs,Mode=TwoWay}"/>
-                        <Label>UnusedMorphs</Label>
+                        <Label>Unused Morphs</Label>
                     </StackPanel>
                     <StackPanel 
-                        Name="SingleUseMorphsPanel"
-                        Visibility="Collapsed"
                         Orientation="Horizontal" 
                         FlowDirection="LeftToRight">
                         <CheckBox 
@@ -68,6 +91,8 @@
                             IsChecked="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.ShowSingleUseMorphs,Mode=TwoWay}"/>
                         <Label>Single-Use Morphs</Label>
                     </StackPanel>
+                </RibbonGroup>
+                <RibbonGroup x:Name="GroupMorphType" Header="Morph Type">
                     <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
                         <CheckBox 
                             DataContext="this" 
@@ -97,6 +122,21 @@
                         <Label>Bad Morphs</Label>
                     </StackPanel>
                 </RibbonGroup>
+                <RibbonGroup x:Name="GroupMorph" Header="Filter Morphs By Name">
+                    <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                        <RibbonTextBox 
+                            x:Name="MorphNameFilter" 
+                            TextBoxWidth="200" 
+                            DataContext="this"
+                            Text="{Binding ElementName=_mainWindow,Path=Settings.LoadedSettings.MorphNameFilter,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                        />
+                        <RibbonButton 
+                            x:Name="FilterMorphsByNameButton"
+                            Click="OnFilterMorphsByName"
+                            Label="Filter"
+                        />
+                    </StackPanel>
+                </RibbonGroup>
                 <RibbonGroup x:Name="groupMorphFixes" Header="Morph Folder Fixes">
                     <RibbonButton 
                     x:Name="DeleteDSFButton"
@@ -111,26 +151,17 @@
                     <RibbonButton 
                     x:Name="AutoRegionButton"
                     Click="OnAutoRegion"
-                    Label="Move Auto Morphs to AUTO Region" 
+                    Label="Move Auto Morphs to AUTO Category" 
                     SmallImageSource="Icons/MoveField_16x.png"/>
                 </RibbonGroup>
-                <RibbonGroup x:Name="groupSavesFixes" Header="Saves Folder Fixes">
+                <RibbonGroup x:Name="GroupSaveActions" Header="Batch-Edit Saves" Visibility="Collapsed">
                     <RibbonButton 
-                        x:Name="FindMorphReferencesButton"
-                        Click="OnFindMorphReferences"
-                        Label="Find Morph References" 
-                        SmallImageSource="Icons/UserBuild_16x.png"/>
-                    <RibbonButton 
-                        x:Name="RemoveInactiveMorphs"
-                        Visibility="Collapsed"
                         Click="OnRemoveInactiveMorphs"
-                        Label="Remove Inactive Morphs" 
+                        Label="Remove Zero References" 
                         SmallImageSource="Icons/DecreaseDecimalsHL_16x.png"/>
                     <RibbonButton 
-                        x:Name="RemoveMorphArtifacts"
-                        Visibility="Collapsed"
                         Click="OnRemoveMorphArtifacts"
-                        Label="Remove Morph Artifacts" 
+                        Label="Remove Reference Artifacts" 
                         SmallImageSource="Icons/NumericListBox_16x.png"/>
                 </RibbonGroup>
                 <RibbonGroup x:Name="groupMorphActions" Header="Morph Actions" Visibility="Collapsed">
@@ -139,18 +170,14 @@
                         Label="Move To Trash" 
                         Click="OnTrashMorph"
                         SmallImageSource="Icons/VSO_RecycleBin_16x.png"/>
-                    <RibbonButton 
-                        x:Name="RenameMorph"
-                        Click="OnRenameMorph"
-                        Label="Rename" 
-                        SmallImageSource="Icons/Rename_16x.png"/>
+                    
                 </RibbonGroup>
             </RibbonTab>
         </ribbon:Ribbon>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
@@ -165,12 +192,13 @@
                 <TextBlock
                     x:Name="MorphInfo"
                     Margin="10, 0" 
-                    Text="Morphs in Region"/>
+                    Text="Morphs in Category"/>
             </Grid>
 
             <Grid Grid.Row="1">
                 <ListBox 
                 Name="regionsListBox"
+                SelectionChanged="RegionListBox_SelectionChanged"
                 ScrollViewer.VerticalScrollBarVisibility="Visible"
                 ItemsSource="{Binding Source={StaticResource sortedRegions}}"
                 IsSynchronizedWithCurrentItem="True"
