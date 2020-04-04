@@ -78,7 +78,7 @@ Scans your **Saves** folder for scenes and looks counts how many scenes or looks
 - implement `Remove Missing Morphs`
 - implement `Remove Inactive Morphs`
 - implement `Remove Morph Artifacts`
-
+- add [dark mode](https://www.codeproject.com/Articles/442856/Visual-Studio-2012-Metro-Styles-for-WPF)
 ### v0.4
 - install DSF and pre-sort by region so the new morphs are imported into your region of choice
 - importing some DUF to VAP
