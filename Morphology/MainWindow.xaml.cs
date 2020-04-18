@@ -774,7 +774,16 @@ namespace Morphology
                         Directory.CreateDirectory(destinationFolder);
                     }
 
-                    File.Move(source, destination);
+                    try
+                    {
+                        // This will overwrite a possible duplicate file in the trash, e.g. when the same morph is deleted more than once.
+                        File.Copy(source, destination, true);
+                        File.Delete(source);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Could not move morph to trash.\n\n" + source + "\n\n" + ex.Message, "Morphology", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
 
